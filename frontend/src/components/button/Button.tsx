@@ -10,8 +10,14 @@ type ButtonProps = {
   isLoading?: boolean;
 };
 
-
-const Button = ({type, text, className, children, onClick, isLoading= false}: ButtonProps) => {
+const Button = ({
+  type,
+  text,
+  className,
+  children,
+  onClick,
+  isLoading = false,
+}: ButtonProps) => {
   return (
     <button
       type={type}
@@ -21,6 +27,6 @@ const Button = ({type, text, className, children, onClick, isLoading= false}: Bu
       {isLoading ? <Spinner /> : text} {children}
     </button>
   );
-}
+};
 
-export default Button
+export default Button;

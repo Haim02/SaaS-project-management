@@ -1,10 +1,11 @@
+import type { Task } from "../types/task";
 import { api } from "./api";
 
 
 export const tasksApi = api.injectEndpoints({
     endpoints: (builder) => ({
-        getTasks: builder.query<Array<any>, { projectId: string }>({
-            query: ({ projectId }) => `/${projectId}/tasks`,
+        getTasks: builder.query<Task[], { projectId: string, orgId: string }>({
+            query: ({ projectId, orgId }) => `/${projectId}/tasks?orgId=${orgId}`,
             providesTags: (_res, _err, { projectId }) => [{ type: 'Tasks', id: projectId }],
         }),
         updateTask: builder.mutation<any, { projectId: string; taskId: string; patch: any }>({
@@ -16,16 +17,11 @@ export const tasksApi = api.injectEndpoints({
             invalidatesTags: (_res, _err, { projectId }) => [{ type: 'Tasks', id: projectId }],
         }),
 
-        createTask: builder.mutation<any, {
-            projectId: string; body: {
-                title: string; description?: string; status: 'todo' | 'inprogress' | 'done'; order?: number; assigneeName?: string; priority?: 'low' | 'medium' | 'high'; labels?: string[]
-            }
-        }>({
-            query: ({ projectId, body }) => ({ url: `/${projectId}/tasks`, method: 'POST', body }),
+        createTask: builder.mutation<Task, { projectId: string; orgId: string; body: Partial<Task> }>({
+            query: ({ projectId, ...rest }) => ({ url: `/${projectId}/tasks`, method: 'POST', body: rest }),
             invalidatesTags: (_res, _err, { projectId }) => [{ type: 'Tasks', id: projectId }]
         }),
 
-        // עדכון סדר/סטטוס של כמה משימות בבת אחת (אופציונלי, אם תתמוך בשרת)
         reorderTasks: builder.mutation<any, { projectId: string; updates: Array<{ taskId: string; order: number; status: string }> }>({
             query: ({ projectId, updates }) => ({ url: `/${projectId}/tasks/reorder`, method: 'PATCH', body: { updates } }),
             invalidatesTags: (_res, _err, { projectId }) => [{ type: 'Tasks', id: projectId }]

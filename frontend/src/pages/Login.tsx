@@ -13,7 +13,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await login({ email, password }).unwrap();
+      await login({ email, password }).unwrap();
       navigate("/dashboard");
     } catch (error) {
       console.error("err", error);
@@ -23,7 +23,6 @@ const Login = () => {
  const handleGoogle = () => {
    window.location.href = "http://localhost:3000/api/auth/google/start";
  };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center">

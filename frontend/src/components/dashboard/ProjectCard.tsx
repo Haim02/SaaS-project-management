@@ -11,9 +11,7 @@ type ProjectCardProps = {
   onOpen: () => void;
 };
 
-
 const ProjectCard = ({ project, onOpen }: ProjectCardProps) => {
-  
   return (
     <div className="bg-white border rounded-2xl p-4 shadow-sm flex flex-col gap-2">
       <div className="flex items-start justify-between">
@@ -45,4 +43,4 @@ const ProjectCard = ({ project, onOpen }: ProjectCardProps) => {
   );
 };
 
-export default ProjectCard
+export default ProjectCard;

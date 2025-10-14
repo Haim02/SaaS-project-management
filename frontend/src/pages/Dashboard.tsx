@@ -15,14 +15,19 @@ import ProjectCard from "../components/dashboard/ProjectCard";
 import EmptyState from "../components/dashboard/EmptyState";
 import StatCard from "../components/dashboard/StatCard";
 import CardAction from "../components/dashboard/CardAction";
+import { useMeQuery } from "../services/authApi";
+import useActiveOrg from "../hooks/useActiveOrg";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { data: me } = useMeQuery();
+  const { activeOrgId } = useActiveOrg(me);
+
   const {
     data: projects = [],
     isLoading: isLoadingProjects,
     isError: isProjectsError,
-  } = useGetProjectsQuery();
+  } = useGetProjectsQuery({ orgId: activeOrgId! });
 
   const [activeProjectId, setActiveProjectId] = useState<string | null>(
     projects?.[0]?._id ?? null
@@ -86,7 +91,6 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Quick Actions */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <CardAction
           title="צור משימה חדשה"

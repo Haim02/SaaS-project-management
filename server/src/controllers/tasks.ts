@@ -1,9 +1,19 @@
 import { Request, Response } from "express";
 import { Task } from "../models/Task";
 import { StatusCodes } from "http-status-codes";
+import { Organization } from "../models/Organization";
 
 export const getAllTasks = async (req: Request, res: Response) => {
     const { projectId } = req.params
+    const { orgId } = req.query as { orgId?: string };
+    if (!orgId) {
+        return res.status(400).json({ error: "Missing orgId" });
+    }
+
+    const ok = await Organization.exists({ _id: orgId, "members.userId": req.userId });
+    if (!ok) {
+        return res.status(403).json({ error: "Forbidden" });
+    }
 
     try {
         const tasks = await Task.find({ projectId }).sort({ order: 1, createdAt: 1 })
@@ -15,10 +25,32 @@ export const getAllTasks = async (req: Request, res: Response) => {
 
 export const createTask = async (req: Request, res: Response) => {
     const { projectId } = req.params
-    const body = req.body
+    const {orgId} = req.body
+    const {body} = req.body
+    if (!orgId) {
+        return res.status(400).json({ error: "Missing orgId" });
+    }
 
+    const ok = await Organization.exists({ _id: orgId, "members.userId": req.userId });
+
+    if (!ok) {
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: "Forbidden" });
+    }
+    if (!body.title || !projectId) {
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: "Missing values" });
+    }
+    const newTask = {
+        projectId,
+        title: body.title,
+        description: body.description,
+        status: body.status,
+        priority: body.priority,
+        assigneeName: body.assigneeName ,
+        labels: body.labels,
+        order: body.order
+    }
     try {
-        const task = await Task.create({ ...body, projectId })
+        const task = await Task.create(newTask)
         res.status(StatusCodes.CREATED).json(task)
     } catch (error) {
         res.status(StatusCodes.BAD_REQUEST).json(error)

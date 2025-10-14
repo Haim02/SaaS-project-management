@@ -2,7 +2,7 @@ import z from "zod";
 import { useChangePasswordMutation } from "../../services/authApi";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import Button from "../button/Button";
 
 const pwdSchema = z
   .object({
@@ -18,30 +18,29 @@ const pwdSchema = z
 type PwdInput = z.infer<typeof pwdSchema>;
 
 const SecurityForm = () => {
-    const [changePassword, { isLoading }] = useChangePasswordMutation();
-      const {
-        register,
-        handleSubmit,
-        formState: { errors, isSubmitting },
-        reset,
-      } = useForm<PwdInput>({
-        resolver: zodResolver(pwdSchema),
-        mode: "onBlur",
-      });
+  const [changePassword, { isLoading }] = useChangePasswordMutation();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<PwdInput>({
+    resolver: zodResolver(pwdSchema),
+    mode: "onBlur",
+  });
 
-    const onSubmit = async(values: PwdInput) => {
-          try {
-            await changePassword({
-              currentPassword: values.currentPassword,
-              newPassword: values.newPassword,
-            }).unwrap();
-            alert("הסיסמה עודכנה בהצלחה");
-            reset({ currentPassword: "", newPassword: "", confirm: "" });
-          } catch (e: any) {
-            alert(e?.data?.error || "שגיאה בעדכון סיסמה");
-          }
-        }
-
+  const onSubmit = async (values: PwdInput) => {
+    try {
+      await changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      }).unwrap();
+      alert("הסיסמה עודכנה בהצלחה");
+      reset({ currentPassword: "", newPassword: "", confirm: "" });
+    } catch (e: any) {
+      alert(e?.data?.error || "שגיאה בעדכון סיסמה");
+    }
+  };
 
   return (
     <div>
@@ -85,19 +84,14 @@ const SecurityForm = () => {
           )}
         </div>
 
-        <button
+        <Button
+          text="עדכן סיסמה"
+          isLoading={isLoading || isSubmitting}
           type="submit"
-          disabled={isSubmitting || isLoading}
-          className="px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center justify-center"
-        >
-          {(isSubmitting || isLoading) && (
-            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          )}
-          עדכן סיסמה
-        </button>
+        />
       </form>
     </div>
   );
-}
+};
 
-export default SecurityForm
+export default SecurityForm;

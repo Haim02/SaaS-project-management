@@ -9,7 +9,7 @@ export interface Task {
   priority?: 'low'|'medium'|'high';
   assigneeName?: string;
   order: number;
-  labels?: string[]; // חדש
+  labels?: string[]; 
 }
 
 export interface Project {

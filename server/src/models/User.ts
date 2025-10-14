@@ -20,11 +20,15 @@ const userSchema = new Schema({
         type: String,
         index: true
     },
+    members: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Organization'
+    }],
     provider: {
         type: String,
         enum: ["local", "google"],
-        default: "local" },
-
+        default: "local"
+     },
 }, { timestamps: true })
 
 export const User = model('User', userSchema)

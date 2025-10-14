@@ -1,4 +1,3 @@
-
 type EmptyStateProps = {
   title: string;
   desc?: string;
@@ -7,7 +6,6 @@ type EmptyStateProps = {
 };
 
 const EmptyState = ({ title, desc, actionText, onAction }: EmptyStateProps) => {
-  
   return (
     <div className="bg-white border rounded-2xl p-10 text-center shadow-sm">
       <h3 className="text-lg font-semibold">{title}</h3>
@@ -24,4 +22,4 @@ const EmptyState = ({ title, desc, actionText, onAction }: EmptyStateProps) => {
   );
 };
 
-export default EmptyState
+export default EmptyState;

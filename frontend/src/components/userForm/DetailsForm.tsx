@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { useUpdateMeMutation } from "../../services/authApi";
+import Button from "../button/Button";
 
 const detailsSchema = z.object({
   name: z.string().min(2, "שם קצר מדי"),
@@ -10,28 +11,28 @@ const detailsSchema = z.object({
 type DetailsInput = z.infer<typeof detailsSchema>;
 
 const DetailsForm = ({ initial }: { initial: DetailsInput }) => {
-      const [updateMe, { isLoading }] = useUpdateMeMutation();
+  const [updateMe, { isLoading }] = useUpdateMeMutation();
 
-      const {
-        register,
-        handleSubmit,
-        formState: { errors, isSubmitting },
-        reset,
-      } = useForm<DetailsInput>({
-        resolver: zodResolver(detailsSchema),
-        defaultValues: initial,
-        mode: "onBlur",
-      });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<DetailsInput>({
+    resolver: zodResolver(detailsSchema),
+    defaultValues: initial,
+    mode: "onBlur",
+  });
 
-    const onSubmit = async(values: DetailsInput) => {
-   try {
-     await updateMe(values).unwrap();
-     reset(values);
-     alert("הפרטים עודכנו בהצלחה");
-   } catch (e: any) {
-     alert(e?.data?.error || "שגיאה בעדכון פרטים");
-   }
-  }
+  const onSubmit = async (values: DetailsInput) => {
+    try {
+      await updateMe(values).unwrap();
+      reset(values);
+      alert("הפרטים עודכנו בהצלחה");
+    } catch (e: any) {
+      alert(e?.data?.error || "שגיאה בעדכון פרטים");
+    }
+  };
 
   return (
     <form
@@ -60,18 +61,13 @@ const DetailsForm = ({ initial }: { initial: DetailsInput }) => {
         )}
       </div>
 
-      <button
+      <Button
+        text="שמור שינויים"
+        isLoading={isLoading || isSubmitting}
         type="submit"
-        disabled={isSubmitting || isLoading}
-        className="px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center justify-center"
-      >
-        {(isSubmitting || isLoading) && (
-          <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-        )}
-        שמור שינויים
-      </button>
+      />
     </form>
   );
 };
 
-export default DetailsForm
+export default DetailsForm;

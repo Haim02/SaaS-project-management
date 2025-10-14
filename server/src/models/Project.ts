@@ -10,11 +10,18 @@ const projectSchema = new Schema({
         type: String
     },
     ownerId: {
-        type:
-        Types.ObjectId,
+        type: Types.ObjectId,
         ref: "User",
         required: true
-    }
+    },
+    orgId: {
+         type: Types.ObjectId,
+         ref: "Organization",
+         required: true,
+         index: true },
+
 }, { timestamps: true });
+
+projectSchema.index({ orgId: 1, name: 1 }, { unique: true });
 
 export const Project = model("Project", projectSchema);

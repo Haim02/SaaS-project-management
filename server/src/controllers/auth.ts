@@ -5,6 +5,7 @@ import { signToken } from "../middleware/auth";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../config/env";
 import jwt from "jsonwebtoken";
+import { Organization } from "../models/Organization";
 
 type RegisterUser = {
     name: string;
@@ -77,8 +78,6 @@ export const login = async(req: Request, res: Response) => {
 }
 
 export const logout = async (req: Request, res: Response) => {
-    console.log('server', res.clearCookie(env.COOKIE_NAME))
-    res.clearCookie(env.COOKIE_NAME)
     res.clearCookie(env.COOKIE_NAME, {
         httpOnly: true,
         secure: true,
@@ -109,6 +108,7 @@ export const isUserLogin = async (req: Request, res: Response) => {
     res.json({ _id: user._id, name: user.name, email: user.email });
 }
 
+
 export const me = async (req: Request, res: Response) => {
     const userId = req.userId
     if (!userId) {
@@ -116,11 +116,25 @@ export const me = async (req: Request, res: Response) => {
     }
 
     try {
-        const user = await User.findById(userId).select("_id name email")
+        const user = await User.findById(userId).select("_id name email").populate("members")
         if(!user) {
             return res.status(StatusCodes.NOT_FOUND).json({error: "User Not Found"})
         }
-        res.status(StatusCodes.OK).json({_id: user._id, name: user.name, email: user.email})
+
+        const orgs = await Organization.find({ "members.userId": userId })
+            .select("_id name members")
+            .lean();
+
+        const memberships = orgs.map((org) => {
+            const member = org.members.find((members: any) => String(members.userId) === String(userId));
+            return {
+                _id: String(org._id),
+                name: org.name,
+                role: member?.role as "owner" | "member",
+            };
+        });
+
+        res.status(StatusCodes.OK).json({ _id: user._id, name: user.name, email: user.email, members: memberships})
     } catch (error) {
         res.status(StatusCodes.BAD_REQUEST).json(error)
     }

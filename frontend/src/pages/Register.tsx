@@ -46,16 +46,15 @@ export default function Register() {
   const onSubmit = async (data: RegisterForm) => {
     try {
       const res = await registerUser(data).unwrap();
-      console.log("נרשמתי:", res.token);
       navigate("/login");
     } catch (err) {
       console.error("שגיאה בהרשמה", err);
     }
   };
 
- const handleGoogle = () => {
-   window.location.href = "http://localhost:3000/api/auth/google/start";
- };
+  const handleGoogle = () => {
+    window.location.href = "http://localhost:3000/api/auth/google/start";
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center">

@@ -39,26 +39,32 @@ type EditTaskModalProps = {
   onDelete: () => Promise<void>;
 };
 
-const EditTaskModal = ({open, initial, onClose, onSave, onDelete, }: EditTaskModalProps) => {
-    const {
-      register,
-      handleSubmit,
-      formState: { errors, isSubmitting },
-      reset,
-    } = useForm<FormInput>({
-      resolver: zodResolver(schema),
-      values: initial
-        ? {
-            title: initial.title,
-            description: initial.description,
-            status: initial.status,
-            priority: initial.priority ?? "medium",
-            assigneeName: initial.assigneeName,
-            labelsCsv: initial.labels?.join(", ") ?? "",
-          }
-        : undefined,
-      mode: "onBlur",
-    });
+const EditTaskModal = ({
+  open,
+  initial,
+  onClose,
+  onSave,
+  onDelete,
+}: EditTaskModalProps) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<FormInput>({
+    resolver: zodResolver(schema),
+    values: initial
+      ? {
+          title: initial.title,
+          description: initial.description,
+          status: initial.status,
+          priority: initial.priority ?? "medium",
+          assigneeName: initial.assigneeName,
+          labelsCsv: initial.labels?.join(", ") ?? "",
+        }
+      : undefined,
+    mode: "onBlur",
+  });
 
   if (!open || !initial) return null;
 
@@ -178,6 +184,6 @@ const EditTaskModal = ({open, initial, onClose, onSave, onDelete, }: EditTaskMod
       </div>
     </div>
   );
-}
+};
 
-export default  EditTaskModal
+export default EditTaskModal;

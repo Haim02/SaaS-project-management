@@ -11,15 +11,33 @@ type TaskCardProps = {
   labels?: string[];
 };
 
-const TaskCard = ({ id, title, assignee, priority, onOpen, labels }: TaskCardProps) => {
-    const {attributes,listeners,setNodeRef,transform,transition,isDragging} = useSortable({ id });
-    const style = {transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1};
-    const priorityColor =
-      priority === "high"
-        ? "bg-red-100 text-red-700"
-        : priority === "low"
-        ? "bg-gray-100 text-gray-600"
-        : "bg-yellow-100 text-yellow-700";
+const TaskCard = ({
+  id,
+  title,
+  assignee,
+  priority,
+  onOpen,
+  labels,
+}: TaskCardProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+  const priorityColor =
+    priority === "high"
+      ? "bg-red-100 text-red-700"
+      : priority === "low"
+      ? "bg-gray-100 text-gray-600"
+      : "bg-yellow-100 text-yellow-700";
 
   return (
     <div
@@ -27,7 +45,7 @@ const TaskCard = ({ id, title, assignee, priority, onOpen, labels }: TaskCardPro
       style={style}
       {...attributes}
       {...listeners}
-      onClick={() => onOpen?.(id)} 
+      onClick={() => onOpen?.(id)}
       className="bg-white border rounded-lg p-3 shadow-sm hover:shadow transition cursor-pointer"
     >
       {labels && labels.length > 0 && (

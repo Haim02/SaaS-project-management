@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {useMeQuery} from "../services/authApi";
+import { useMeQuery } from "../services/authApi";
 import Spinner from "../components/Spinner";
 import Avatar from "../components/userForm/Avatar";
 import DetailsForm from "../components/userForm/DetailsForm";
@@ -54,6 +54,6 @@ const UserProfile = () => {
       )}
     </div>
   );
-}
+};
 
 export default UserProfile;

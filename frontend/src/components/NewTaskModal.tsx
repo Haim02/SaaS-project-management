@@ -3,25 +3,28 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "./button/Button";
 
-
-const schema = z.object({
-  title: z.string().min(2, "כותרת קצרה מדי"),
-  description: z.string().optional(),
-  status: z.enum(["todo", "inprogress", "done"]).default("todo"),
-  priority: z.enum(["low", "medium", "high"]).default("medium"),
-  assigneeName: z.string().optional(),
-  labelsCsv: z.string().optional(),
-})
-.transform((v) => ({
-  title: v.title,
-  description: v.description,
-  status: v.status,
-  priority: v.priority,
-  assigneeName: v.assigneeName,
-  labels: v.labelsCsv
-    ? v.labelsCsv.split(",").map((s) => s.trim()).filter(Boolean)
-    : [] as string[],
-}));
+const schema = z
+  .object({
+    title: z.string().min(2, "כותרת קצרה מדי"),
+    description: z.string().optional(),
+    status: z.enum(["todo", "inprogress", "done"]).default("todo"),
+    priority: z.enum(["low", "medium", "high"]).default("medium"),
+    assigneeName: z.string().optional(),
+    labelsCsv: z.string().optional(),
+  })
+  .transform((v) => ({
+    title: v.title,
+    description: v.description,
+    status: v.status,
+    priority: v.priority,
+    assigneeName: v.assigneeName,
+    labels: v.labelsCsv
+      ? v.labelsCsv
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : ([] as string[]),
+  }));
 
 type FormInput = z.input<typeof schema>;
 type FormOutput = z.output<typeof schema>;
@@ -32,11 +35,16 @@ type NewTaskModalProps = {
   onCreate: (data: FormOutput) => Promise<void>;
 };
 
-const NewTaskModal = ({open, onClose, onCreate}: NewTaskModalProps) => {
-  const {register,handleSubmit,formState: { errors, isSubmitting },reset} = useForm<FormInput>({
+const NewTaskModal = ({ open, onClose, onCreate }: NewTaskModalProps) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<FormInput>({
     resolver: zodResolver(schema),
     defaultValues: { status: "todo", priority: "medium" },
-    mode: "onBlur"
+    mode: "onBlur",
   });
 
   const submit = async (values: FormInput) => {
@@ -127,6 +135,6 @@ const NewTaskModal = ({open, onClose, onCreate}: NewTaskModalProps) => {
       </div>
     </div>
   );
-}
+};
 
 export default NewTaskModal;

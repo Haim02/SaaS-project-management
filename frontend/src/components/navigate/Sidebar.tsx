@@ -1,27 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useLogoutMutation } from "../../services/authApi";
 import { useGetProjectsQuery } from "../../services/projectApi";
-import { FolderIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
-import Spinner from './../Spinner';
+import {FolderIcon, UserCircleIcon} from "@heroicons/react/24/outline";
+import Spinner from "./../Spinner";
 import Button from "../button/Button";
+import type { User } from "../../types/user";
 
 type SidebarProps = {
   open: boolean;
   onClose: () => void;
+  user: User;
 };
+
+const ORG_KEY = "active_org_id";
+
+const getStoredOrganizationId = localStorage.getItem(ORG_KEY) ?? "";
 
 const Sidebar = ({ open, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [orgId, setOrgId] = useState<string>(getStoredOrganizationId);
   const { projectId: activeId } = useParams();
   const [logout] = useLogoutMutation();
   const {
     data: projects = [],
     isLoading,
     isError,
-    refetch,
-  } = useGetProjectsQuery();
+  } = useGetProjectsQuery({ orgId: activeId });
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -34,10 +40,10 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
     );
   }, [projects, q]);
 
-  const handleLogout = async() => {
-    await logout().unwrap()
+  const handleLogout = async () => {
+    await logout().unwrap();
     navigate("/");
-  }
+  };
 
   useEffect(() => {
     if (open) onClose();
@@ -66,20 +72,24 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-bold">הפרויקטים שלי</h2>
           <div className="flex gap-2">
-            <button
-              onClick={() => refetch()}
-              className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-            >
-              רענן
-            </button>
-            <button
-              onClick={() => navigate("/projects")}
-              className="inline-flex items-center gap-1 bg-blue-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-blue-700"
-              title="צור/נהל פרויקטים"
-            >
-              <PlusCircleIcon className="h-5 w-5" />
-              ניהול
-            </button>
+            <Link to="/profile">
+              <UserCircleIcon className="h-12 w-8 text-blue-500" />
+            </Link>
+            {orgId ? (
+              <Link
+                to={`/org/${orgId}/settings`}
+                className="px-3 py-2 rounded-lg border hover:bg-gray-50"
+              >
+                הגדרות ארגון
+              </Link>
+            ) : (
+              <button
+                onClick={() => navigate("/org/gate?returnTo=/org/settings")}
+                className="px-3 py-2 rounded-lg border hover:bg-gray-50"
+              >
+                הגדרות ארגון
+              </button>
+            )}
           </div>
         </div>
 
@@ -95,15 +105,15 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         <div className="px-2 pb-4 overflow-y-auto h-[calc(100%-110px)] flex flex-col justify-between">
           {isLoading && <Spinner />}
 
-          {isError && (
-            <div className="p-4 text-red-600 text-sm">
-              שגיאה בטעינת פרויקטים. נסה לרענן.
+          {!isLoading && filtered.length === 0 && (
+            <div className="p-4 text-gray-600 text-sm">
+              לא נמצאו פרויקטים תואמים.
             </div>
           )}
 
-          {!isLoading && !isError && filtered.length === 0 && (
-            <div className="p-4 text-gray-600 text-sm">
-              לא נמצאו פרויקטים תואמים.
+          {isError && (
+            <div className="p-4 text-red-600 text-sm">
+              שגיאה בטעינת פרויקטים. נסה לרענן.
             </div>
           )}
 
@@ -130,11 +140,16 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               );
             })}
           </ul>
-          <Button text="התנתק" onClick={handleLogout} type="button" className="bg-red-600 hover:bg-red-400" />
+          <Button
+            text="התנתק"
+            onClick={handleLogout}
+            type="button"
+            className="bg-red-600 hover:bg-red-400"
+          />
         </div>
       </aside>
     </>
   );
-}
+};
 
 export default Sidebar;

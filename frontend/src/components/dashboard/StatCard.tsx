@@ -8,7 +8,6 @@ type StatCardProps = {
 };
 
 const StatCard = ({ title, value, icon: Icon, loading }: StatCardProps) => {
-  
   return (
     <div className="bg-white border rounded-2xl p-4 shadow-sm">
       <div className="flex items-center gap-3">

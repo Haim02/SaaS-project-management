@@ -2,53 +2,64 @@ import { useState } from "react";
 import {
   useGetProjectsQuery,
   useCreateProjectMutation,
-  useDeleteProjectMutation,
 } from "../services/projectApi";
 import Spinner from "../components/Spinner";
 import NewProjectModal from "../components/NewProjectModal";
 import ProjectCard from "../components/ProjectCard";
+import RequirePermission from "../components/Require/RequirePermission";
+import OrgSelector from "../components/OrgSelector";
+import { useMeQuery } from "../services/authApi";
+import useActiveOrg from "../hooks/useActiveOrg";
 
 type HandleCreateProps = {
-    name: string;
-    description?: string
-}
+  name: string;
+  description?: string;
+};
 
+const ORG_KEY = "active_org_id";
+
+const getStoredOrganizationId = () => localStorage.getItem(ORG_KEY) ?? "";
 
 const ProjectsDashboard = () => {
-    const {data: projects = [],isLoading,isError,refetch} = useGetProjectsQuery();
-    const [createProject] = useCreateProjectMutation();
-    const [deleteProject] = useDeleteProjectMutation();
+  const { data: me } = useMeQuery();
+  const [orgId, setOrgId] = useState<string>(() => getStoredOrganizationId());
+  const { activeOrgId } = useActiveOrg(me);
+  const {
+    data: projects = [],
+    isLoading,
+    refetch,
+  } = useGetProjectsQuery({ orgId: activeOrgId! });
+  const [createProject] = useCreateProjectMutation();
 
-    const [openNew, setOpenNew] = useState(false);
-    const [search, setSearch] = useState("");
-    const filtered = projects.filter((project) => {
-       return (
-        project.name.toLowerCase().includes(search.toLowerCase()) ||
-        (project.description ?? "").toLowerCase().includes(search.toLowerCase())
-       )
+  const [openNew, setOpenNew] = useState(false);
+  const [search, setSearch] = useState("");
+  const filtered = projects.filter((project) => {
+    return (
+      project.name.toLowerCase().includes(search.toLowerCase()) ||
+      (project.description ?? "").toLowerCase().includes(search.toLowerCase())
+    );
+  });
+
+  const onChoose: React.FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const chosen = String(fd.get("orgId") || "");
+    if (chosen) {
+      localStorage.setItem(ORG_KEY, chosen);
+      setOrgId(chosen);
     }
-);
+  };
 
-  const handleCreate = async(values: HandleCreateProps) => {
+  const handleCreate = async (values: HandleCreateProps) => {
     try {
       await createProject(values).unwrap();
       setOpenNew(false);
     } catch {
       alert("שגיאה ביצירת פרויקט");
     }
-  }
-
-  const handleDelete = async(id: string) => {
-    if (!confirm("למחוק את הפרויקט וכל המשימות שבו?")) return;
-    try {
-      await deleteProject({ projectId: id }).unwrap();
-    } catch {
-      alert("מחיקה נכשלה");
-    }
-  }
+  };
 
   if (isLoading) return <Spinner />;
-  if (isError) return <div className="p-6 text-red-600">שגיאה בטעינת פרויקטים</div>;
 
   return (
     <div className="p-6 space-y-6">
@@ -70,6 +81,17 @@ const ProjectsDashboard = () => {
           >
             רענן
           </button>
+
+          <div className="flex gap-3">
+            <RequirePermission perm="project.create">
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-xl">
+                + פרויקט חדש
+              </button>
+            </RequirePermission>
+          </div>
+
+          <OrgSelector />
+
           <button
             onClick={() => setOpenNew(true)}
             className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
@@ -92,7 +114,7 @@ const ProjectsDashboard = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {filtered.map((p) => (
-            <ProjectCard key={p._id} project={p} onDelete={handleDelete} />
+            <ProjectCard key={p._id} project={p} />
           ))}
         </div>
       )}

@@ -1,21 +1,18 @@
-import type { Project } from './../types/task';
+import type { Project } from "./../types/task";
 import { useNavigate } from "react-router-dom";
 import { TrashIcon, ArrowLeftCircleIcon } from "@heroicons/react/24/outline";
-import { useDeleteProjectMutation } from '../services/projectApi';
-import Spinner from './Spinner';
+import { useDeleteProjectMutation } from "../services/projectApi";
+import Spinner from "./Spinner";
 
 type ProjectCardProps = {
   project: Project;
-  onDelete: (id: string) => void;
 };
-
-const ProjectCard = ({project, onDelete}: ProjectCardProps) => {
-    const navigate = useNavigate();
-    const [deleteProject, {isLoading}] = useDeleteProjectMutation();
-
-    const handleDelete = async (projectId: string) => {
-      await deleteProject({projectId}).unwrap();
-    };
+const ProjectCard = ({ project }: ProjectCardProps) => {
+  const navigate = useNavigate();
+  const [deleteProject, { isLoading }] = useDeleteProjectMutation();
+  const handleDelete = async (projectId: string) => {
+    await deleteProject({ projectId }).unwrap();
+  };
 
   return (
     <div className="bg-white border rounded-xl p-4 shadow-sm flex flex-col gap-3">
@@ -50,6 +47,6 @@ const ProjectCard = ({project, onDelete}: ProjectCardProps) => {
       </div>
     </div>
   );
-}
+};
 
-export default ProjectCard
+export default ProjectCard;

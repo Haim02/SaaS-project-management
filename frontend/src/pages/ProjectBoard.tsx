@@ -1,5 +1,6 @@
+
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { replace, useNavigate, useParams } from "react-router-dom";
 import {
   useGetTasksQuery,
   useCreateTaskMutation,
@@ -10,15 +11,32 @@ import type { Task, TaskStatus } from "../types/task";
 import Spinner from "../components/Spinner";
 import NewTaskModal from "../components/NewTaskModal";
 import Column from "../components/Column";
+import { useMeQuery } from "../services/authApi";
+import OrganizationBadge from "../components/organization/OrganizationBadge";
+import SelectOrganization from "../components/organization/SelectOrganization";
+import Button from "../components/button/Button";
+
+const ORG_KEY = "active_org_id";
+
+const getStoredOrganizationId = () => localStorage.getItem(ORG_KEY) ?? "";
 
 const ProjectBoard = () => {
-  const { projectId = "" } = useParams();
+  const navigate  = useNavigate()
+  const { projectId = "" } = useParams<{ projectId: string }>();
+  const { data: me, isLoading: loadingMe } = useMeQuery();
+  const [orgId, setOrgId] = useState<string>(() => getStoredOrganizationId());
+  const hasNoOrganizations = !!me && (me.members?.length ?? 0) === 0;
+  const needSelectOrg = !orgId && !!me && (me.members?.length ?? 0) > 0;
   const {
     data: tasks = [],
     isLoading,
     isError,
     refetch,
-  } = useGetTasksQuery({ projectId });
+  } = useGetTasksQuery(
+    { projectId, orgId },
+    { skip: !projectId || !orgId }
+  );
+
   const [createTask] = useCreateTaskMutation();
   const [updateTask] = useUpdateTaskMutation();
   const [deleteTask] = useDeleteTaskMutation();
@@ -28,16 +46,56 @@ const ProjectBoard = () => {
     const sortByOrder = (a: Task, b: Task) => (a.order ?? 0) - (b.order ?? 0);
     return {
       todo: tasks.filter((t) => t.status === "todo").sort(sortByOrder),
-      inprogress: tasks
-        .filter((t) => t.status === "inprogress")
-        .sort(sortByOrder),
+      inprogress: tasks.filter((t) => t.status === "inprogress").sort(sortByOrder),
       done: tasks.filter((t) => t.status === "done").sort(sortByOrder),
     };
   }, [tasks]);
 
-  if (isLoading) return <Spinner />;
-  if (isError)
-    return <div className="p-6 text-red-600">שגיאה בטעינת משימות</div>;
+  if (loadingMe) {
+    return (
+      <div className="min-h-[50vh] grid place-items-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (!me) return null;
+
+  if (hasNoOrganizations) {
+     navigate("/no-organization");
+  }
+
+   const onChoose: React.FormEventHandler<HTMLFormElement> = (e) => {
+     e.preventDefault();
+     const fd = new FormData(e.currentTarget);
+     const chosen = String(fd.get("orgId") || "");
+     if (chosen) {
+       localStorage.setItem(ORG_KEY, chosen);
+       setOrgId(chosen);
+     }
+   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[50vh] grid place-items-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div dir="rtl" className="max-w-xl mx-auto bg-white rounded-2xl p-6 shadow">
+        <h2 className="text-xl font-semibold mb-2">שגיאה בטעינת משימות</h2>
+        <p className="text-red-600">בדוק/י הרשאות ושהארגון הנבחר תקין.</p>
+      </div>
+    );
+  }
+
+  const nextOrder = (list: Task[]) => {
+    if (!list.length) return 1000;
+    return Math.max(...list.map((t) => t.order ?? 0)) + 1000;
+  };
 
   const handleCreate = async (values: {
     title: string;
@@ -48,19 +106,15 @@ const ProjectBoard = () => {
     labels?: string[];
   }) => {
     try {
-      await createTask({
+      const res =  await createTask({
         projectId,
-        body: { ...values, order: nextOrder(columns[values.status]) },
-      }).unwrap();
+        orgId: orgId,
+        body: { ...values, order: nextOrder(columns[values.status]) }}).unwrap();
       setOpenNew(false);
+      await refetch();
     } catch {
       alert("יצירת משימה נכשלה");
     }
-  };
-
-  const nextOrder = (list: Task[]) => {
-    if (!list.length) return 1000;
-    return Math.max(...list.map((t) => t.order ?? 0)) + 1000;
   };
 
   const patchTask = async (taskId: string, patch: Partial<Task>) => {
@@ -90,18 +144,8 @@ const ProjectBoard = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => refetch()}
-            className="px-3 py-2 rounded border hover:bg-gray-50"
-          >
-            רענן
-          </button>
-          <button
-            onClick={() => setOpenNew(true)}
-            className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
-          >
-            + משימה חדשה
-          </button>
+          <OrganizationBadge orgId={orgId} user={me} />
+          <Button text="משימה חדשה +" type="submit" className="px-4 py-2" isLoading={isLoading} onClick={() => setOpenNew(true)} />
         </div>
       </div>
 
@@ -136,6 +180,7 @@ const ProjectBoard = () => {
       />
     </div>
   );
-};
+}
+
 
 export default ProjectBoard;

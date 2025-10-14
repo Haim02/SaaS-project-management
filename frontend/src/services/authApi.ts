@@ -4,11 +4,11 @@ import { api } from "./api";
 
 export const authApi = api.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<{ token: string; user: { name: string; email: string } }, { email: string; password: string }>({
+        login: builder.mutation<{ user: User }, { email: string; password: string }>({
             query: (body) => ({ url: '/auth/login', method: 'POST', body }),
             invalidatesTags: ['Me'],
         }),
-        register: builder.mutation<{ token: string; user: { name: string; email: string } }, { name: string; email: string; password: string }>({
+        register: builder.mutation<{ user: User }, { name: string; email: string; password: string }>({
             query: (body) => ({ url: '/auth/register', method: 'POST', body }),
             invalidatesTags: ['Me'],
         }),
@@ -21,7 +21,14 @@ export const authApi = api.injectEndpoints({
             providesTags: ['Me'],
         }),
 
-        me: builder.query<User, void>({ query: () => "/auth/me", providesTags: ["Me"] }),
+        me: builder.query<User, void>({
+            query: () => "/auth/me",
+            providesTags: ["Me"]
+        }),
+        myOrganizations: builder.query<Array<{ _id: string; name: string; description?: string; role: "owner" | "admin" | "member" | "guest"; membersCount: number }>,void>({
+            query: () => "/organizations/mine",
+            providesTags: ["Organizations"],
+        }),
         updateMe: builder.mutation<User, { name: string; email?: string }>({
             query: (body) => ({ url: "/auth/me", method: "PATCH", body }),
             invalidatesTags: ["Me"],
@@ -37,6 +44,7 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useLogoutMutation,
+  useMyOrganizationsQuery,
   useIsUserLoginQuery,
   useMeQuery,
   useUpdateMeMutation,

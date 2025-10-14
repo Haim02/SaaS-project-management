@@ -1,7 +1,4 @@
 import {
-  ClipboardDocumentListIcon,
-  UserGroupIcon,
-  SparklesIcon,
   BoltIcon,
   LockClosedIcon,
   BellIcon,
@@ -31,7 +28,7 @@ const Home = () => {
               משימות, צוות והרשאות במקום אחד.
             </h1>
             <p className="mt-4 text-gray-600 md:text-lg">
-              מערכת  מודרנית לניהול פרויקטים: לוחות קנבן, עדכונים בזמן אמת,
+              מערכת מודרנית לניהול פרויקטים: לוחות קנבן, עדכונים בזמן אמת,
               הרשאות מתקדמות, ודוחות התקדמות.
             </p>
             <div className="mt-8 flex gap-3">

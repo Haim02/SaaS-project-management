@@ -1,4 +1,7 @@
-import {SortableContext, verticalListSortingStrategy,} from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import TaskCard from "./TaskCard";
 import type { Task } from "../../types/task";
 
@@ -7,8 +10,7 @@ type KanbanColumnProps = {
   tasks: Task[];
 };
 
-const KanbanColumn = ({title, tasks}: KanbanColumnProps) => {
-
+const KanbanColumn = ({ title, tasks }: KanbanColumnProps) => {
   return (
     <div className="bg-gray-50 rounded-xl p-3 border">
       <div className="flex items-center justify-between mb-3">

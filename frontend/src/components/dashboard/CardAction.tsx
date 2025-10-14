@@ -3,13 +3,18 @@ import type { IconType } from "../../types/icon";
 type CardActionProps = {
   title: string;
   subtitle?: string;
-  icon: IconType
+  icon: IconType;
   onClick: () => void;
   disabled?: boolean;
 };
 
-const CardAction = ({title,subtitle,icon: Icon,onClick,disabled}: CardActionProps) => {
-  
+const CardAction = ({
+  title,
+  subtitle,
+  icon: Icon,
+  onClick,
+  disabled,
+}: CardActionProps) => {
   return (
     <button
       onClick={onClick}
@@ -34,4 +39,4 @@ const CardAction = ({title,subtitle,icon: Icon,onClick,disabled}: CardActionProp
   );
 };
 
-export default CardAction
+export default CardAction;

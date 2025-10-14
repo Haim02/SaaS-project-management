@@ -1,10 +1,11 @@
+import type { Project } from "../types/task";
 import { api } from "./api";
 
 
 export const projectsApi = api.injectEndpoints({
     endpoints: (builder) => ({
-        getProjects: builder.query<Array<{ _id: string; name: string, description?: string }>, void>({
-            query: () => '/projects',
+        getProjects: builder.query<Project[], {orgId: string | undefined}>({
+            query: ({ orgId }) => `/projects?orgId=${orgId}`,
             providesTags: ['Projects'],
         }),
         createProject: builder.mutation<{ _id: string; name: string, description?: string }, { name: string, description?: string }>({
