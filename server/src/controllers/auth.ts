@@ -78,18 +78,20 @@ export const login = async(req: Request, res: Response) => {
 }
 
 export const logout = async (req: Request, res: Response) => {
-    res.clearCookie(env.COOKIE_NAME, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict" as const,
-        path: "/",
-        maxAge: 0,
-        expires: new Date(0)
-    })
-    res.cookie(env.COOKIE_NAME, "", {
-        httpOnly: true,
-        expires: new Date(0),
-    });
+    res.clearCookie("access_token", {path:'/'})
+    res.send('Cooce cleared')
+    // res.clearCookie(env.COOKIE_NAME, {
+    //     httpOnly: true,
+    //     secure: true,
+    //     sameSite: "strict" as const,
+    //     path: "/",
+    //     maxAge: 0,
+    //     expires: new Date(0)
+    // })
+    // res.cookie(env.COOKIE_NAME, "", {
+    //     httpOnly: true,
+    //     expires: new Date(0),
+    // });
     res.end()
 }
 
