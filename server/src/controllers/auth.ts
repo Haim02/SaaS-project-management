@@ -78,6 +78,7 @@ export const login = async(req: Request, res: Response) => {
 }
 
 export const logout = async (req: Request, res: Response) => {
+    res.clearCookie("access_token", {path: '/'})
     res.clearCookie(env.COOKIE_NAME, {
         httpOnly: true,
         secure: true,
@@ -90,6 +91,7 @@ export const logout = async (req: Request, res: Response) => {
         httpOnly: true,
         expires: new Date(0),
     });
+    res.send("Coocie cleared")
     res.end()
 }
 

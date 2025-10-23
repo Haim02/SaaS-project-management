@@ -24,6 +24,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      MONGO_URI: mongodb://mongo:27017/saas_db
+     
+      FRONTEND_FAILURE_REDIRECT: http://localhost:3000/login?error=google
     ports:
       - "3000:3000"
     restart: unless-stopped
