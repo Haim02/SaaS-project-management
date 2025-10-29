@@ -9,13 +9,16 @@ import projectRouter from './routes/project';
 import taskRouter from './routes/task';
 import { errorHandler, notFound } from './middleware/error';
 import { organizationRouter } from './routes/organization';
-import path from 'path';
 
 const app = express();
 
+const corsOptions = {
+    origin: process.env.CORS_ORIGIN || 'http://localhost',
+    credentials: true
+}
+
 app.use(helmet())
-app.use(express.static(path.join(__dirname, "build")));
-app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }))
+app.use(cors(corsOptions))
 app.use(morgan("dev"))
 app.use(express.json())
 app.use(cookieParser())
@@ -30,9 +33,9 @@ app.use("/api", taskRouter)
 app.use(notFound)
 app.use(errorHandler)
 
-app.get(/(.*)/, (req, res) => {
-    res.sendFile(path.join(__dirname, "build", "index.html"));
-});
+// app.get(/(.*)/, (req, res) => {
+//     res.sendFile(path.join(__dirname, "build", "index.html"));
+// });
 
 
 export default app

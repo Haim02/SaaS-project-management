@@ -3,7 +3,6 @@ import { useHasOrg } from "../../hooks/useHasOrg";
 import Spinner from "../Spinner";
 import NoOrganization from "./NoOrganization";
 import { useMeQuery } from "../../services/authApi";
-import { useCreateOrganizationMutation } from "../../services/organizationApi";
 
 const ORG_KEY = "active_org_id";
 const getActiveOrg = () => localStorage.getItem(ORG_KEY) ?? "";
@@ -16,10 +15,9 @@ type Props = {
 
 const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
   const { me, hasOrg, isLoading } = useHasOrg();
-  const [joinOpen, setJoinOpen] = useState(false);
+  const [_joinOpen, setJoinOpen] = useState(false);
 
-  const [creating, setCreating] = useState(false);
-  const [createOrg] = useCreateOrganizationMutation();
+  const [creating, _setCreating] = useState(false);
   const { refetch: refetchMe } = useMeQuery(undefined, { skip: true });
 
   const activeOrgId = getActiveOrg();

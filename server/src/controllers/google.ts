@@ -25,13 +25,13 @@ export const googleCallback = async (req: Request, res: Response) => {
     try {
         const code = req.query.code as string | undefined;
         if(!code) {
-            return res.redirect("http://localhost:5173/login?error=google")
+            return res.redirect("/login?error=google")
         }
 
         const { tokens } = await client.getToken(code)
         const idToken = tokens.id_token
         if (!idToken) {
-            return res.redirect("http://localhost:5173/")
+            return res.redirect("/")
         }
 
         const ticket = await client.verifyIdToken({

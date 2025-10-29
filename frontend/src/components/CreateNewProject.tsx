@@ -10,7 +10,7 @@ const CreateNewProject = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const project = await createProject({ name, description }).unwrap();
+      await createProject({ name, description }).unwrap();
       setName("");
       setDescription("");
     } catch (error) {

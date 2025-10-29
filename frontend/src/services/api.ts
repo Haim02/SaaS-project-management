@@ -1,15 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
-
 const row = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_URL,
+  baseUrl: "/api",
   credentials: 'include',
 });
 
-
-const getActiveOrgId = () => {
-  return localStorage.getItem("active_org_id");
-}
 
 export const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (args, api, extra) => {
   let a: FetchArgs = typeof args === "string" ? { url: args } : { ...args };

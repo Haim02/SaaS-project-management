@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ===== Frontend =====
+      - name: Setup Node (frontend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install FE
+        working-directory: frontend
+        run: npm ci
+      - name: Test FE
+        working-directory: frontend
+        run: npm test --if-present
+
+      # ===== Backend =====
+      - name: Setup Node (server)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Install BE
+        working-directory: server
+        run: npm ci
+      - name: Test BE
+        working-directory: server
+        run: npm test --if-present
+
+      # ===== Docker Build (validates Dockerfile) =====
+      - name: Build Docker image (no push)
+        run: docker build -t saas-pm:ci .

@@ -1,9 +1,8 @@
 import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMeQuery } from "../services/authApi";
 import {
   useGetInviteQuery,
-  useRenewInviteMutation,
   useDeleteOrganizationMutation,
 } from "../services/organizationApi";
 import Button from "../components/button/Button";
@@ -21,13 +20,11 @@ export default function OrgSettings() {
     () => me?.members?.find((org) => org._id === orgId),
     [me, orgId]
   );
-  const { data: invite, isLoading } = useGetInviteQuery(
+  const { data: invite } = useGetInviteQuery(
     { orgId },
     { skip: !orgId }
   );
-  const [renewInvite, { isLoading: renewing }] = useRenewInviteMutation();
   const [deleteOrg, { isLoading: deleting }] = useDeleteOrganizationMutation();
-  console.log("membership OrgSettings", membership);
   const isOwner = membership && membership.role === "owner";
 
   const inviteLink = invite?.inviteCode

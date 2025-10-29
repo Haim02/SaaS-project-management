@@ -16,6 +16,8 @@ node_modules/
 
 # Environment variables
 .env
+.env*
+.env.deploy
 
 # Build outputs
 build/

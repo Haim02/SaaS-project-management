@@ -1,34 +1,45 @@
 
-version: "3.9"
+
 
 services:
-  frontend-build:
+  frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
-        VITE_API_URL: "http://localhost:3000"
-    image: saas-frontend:build
+        VITE_API_URL: "/api"
+    image: saas-frontend:prod
+    container_name: saas_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    restart: unless-stopped
 
   app:
     build:
-      context: ./server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: server/Dockerfile
     image: saas-app:prod
     container_name: saas_app
+
     depends_on:
-      - frontend-build
       - mongo
     env_file:
       - ./.env
     environment:
       NODE_ENV: production
       PORT: 3000
-      MONGO_URI: mongodb://mongo:27017/saas_db
-     
+      MONGO_URI: ${MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 1d
+      COOKIE_NAME: access_token
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: http://localhost:3000/api/auth/google/callback
+      FRONTEND_SUCCESS_REDIRECT: http://localhost:3000/
       FRONTEND_FAILURE_REDIRECT: http://localhost:3000/login?error=google
-    ports:
-      - "3000:3000"
+      CORS_ORIGIN: "http://localhost"
     restart: unless-stopped
 
   mongo:
@@ -37,8 +48,6 @@ services:
     restart: unless-stopped
     volumes:
       - mongo_data:/data/db
-    ports:
-      - "27017:27017"
 
 volumes:
   mongo_data:

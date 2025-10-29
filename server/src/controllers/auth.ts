@@ -48,7 +48,7 @@ export const login = async(req: Request, res: Response) => {
     const {email, password} = req.body as LoginUser
 
     try {
-        const user = await User.findOne({email})
+        const user = await User.findOne({ email: "ben@gmail.com"})
         if(!user) {
             return res.status(StatusCodes.UNAUTHORIZED).json({
                 error: 'Invalid credentials'
@@ -91,7 +91,7 @@ export const logout = async (req: Request, res: Response) => {
         httpOnly: true,
         expires: new Date(0),
     });
-    res.send("Coocie cleared")
+    res.send({messages: "Coocie cleared"})
     res.end()
 }
 

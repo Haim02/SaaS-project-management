@@ -20,7 +20,7 @@ const getStoredOrganizationId = localStorage.getItem(ORG_KEY) ?? "";
 const Sidebar = ({ open, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [orgId, setOrgId] = useState<string>(getStoredOrganizationId);
+  const [orgId, _setOrgId] = useState<string>(getStoredOrganizationId);
   const { projectId: activeId } = useParams();
   const [logout] = useLogoutMutation();
   const {

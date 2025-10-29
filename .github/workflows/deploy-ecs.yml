@@ -1,0 +1,87 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+# קובץ ה-ENV שמכיל את כל המשתנים (AWS_REGION, ECR_REPOSITORY, וכו')
+env:
+  ENV_FILE: .env.deploy
+  TASK_DEF_PATH: grep -v '^\s*#' "$ENV_FILE" | ...
+
+  run: |
+    export $(grep -v '^#' .env.deploy | xargs)
+
+
+permissions:
+  id-token: write   # OIDC ל-AWS
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # טוען את .env.deploy לתוך GITHUB_ENV כדי שהשלבים הבאים יראו את כל המשתנים
+      - name: Load env file
+        run: |
+          set -eu
+          if [ ! -f "$ENV_FILE" ]; then
+            echo "::error file=$ENV_FILE::env file not found"
+            exit 1
+          fi
+          grep -v '^\s*#' "$ENV_FILE" | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' >> "$GITHUB_ENV"
+          echo "Loaded env:"
+          awk -F= '{print $1}' "$ENV_FILE" | grep -v '^\s*#' | sed 's/^/ - /'
+
+      # מגדיר הרשאות ל-AWS באמצעות OIDC (ללא מפתחות)
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::957597318409:role/gha-ecs-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      # לוגין ל-ECR
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Build & Push — מתייגים גם ב-SHA וגם ב-latest לנוחות
+      - name: Build & Push Docker image
+        env:
+          IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+        run: |
+          docker build -t "$IMAGE_SHA" .
+          docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
+          docker push "$IMAGE_SHA"
+          docker push "$IMAGE_LATEST"
+          echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
+
+      # מעדכן את ה-Task Definition עם התמונה החדשה
+      - name: Render task definition
+        id: taskdef
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.TASK_DEF_PATH }}
+          container-name: ${{ env.ECS_CONTAINER_NAME }}
+          image: ${{ env.IMAGE_URI }}
+
+      # פריסה לשירות
+      - name: Deploy to ECS Service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.taskdef.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      # הדפסה ידידותית בסוף
+      - name: Print deployed image
+        run: |
+          echo "Deployed image:"
+          echo "${IMAGE_URI}"

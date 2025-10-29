@@ -5,7 +5,7 @@
             "ES2020"
         ],
         "module": "CommonJS",
-        "rootDir": ".",
+        "rootDir": "src",
         "outDir": "dist",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
@@ -16,5 +16,8 @@
         "dist",
         "node_modules",
         "tests"
+    ],
+    "include": [
+        "src/**/*.ts"
     ]
 }

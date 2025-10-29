@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts nodemon dist/index.js",
     "build": "tsc",
-    "start": "nodemon index.ts",
+    "start": "nodemon dist/index.js nodemon src/index.ts",
     "test": "jest --runInBand --detectOpenHandles",
     "test:watch": "jest --watch"
   },

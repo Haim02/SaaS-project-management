@@ -22,7 +22,7 @@ const getStoredOrganizationId = () => localStorage.getItem(ORG_KEY) ?? "";
 
 const ProjectsDashboard = () => {
   const { data: me } = useMeQuery();
-  const [orgId, setOrgId] = useState<string>(() => getStoredOrganizationId());
+  const [_orgId, _setOrgId] = useState<string>(() => getStoredOrganizationId());
   const { activeOrgId } = useActiveOrg(me);
   const {
     data: projects = [],
@@ -40,15 +40,15 @@ const ProjectsDashboard = () => {
     );
   });
 
-  const onChoose: React.FormEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const chosen = String(fd.get("orgId") || "");
-    if (chosen) {
-      localStorage.setItem(ORG_KEY, chosen);
-      setOrgId(chosen);
-    }
-  };
+  // const onChoose: React.FormEventHandler<HTMLFormElement> = (e) => {
+  //   e.preventDefault();
+  //   const fd = new FormData(e.currentTarget);
+  //   const chosen = String(fd.get("orgId") || "");
+  //   if (chosen) {
+  //     localStorage.setItem(ORG_KEY, chosen);
+  //     setOrgId(chosen);
+  //   }
+  // };
 
   const handleCreate = async (values: HandleCreateProps) => {
     try {

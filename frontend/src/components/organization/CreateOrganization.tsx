@@ -27,9 +27,7 @@ export default function CreateOrganization() {
   const submit = async (v: FormValues) => {
     try {
       const res = await createOrg(v).unwrap();
-      console.log("ok org");
       if (res?._id) {
-        console.log("if org");
         setActiveOrg(res._id);
         nav("/");
       }

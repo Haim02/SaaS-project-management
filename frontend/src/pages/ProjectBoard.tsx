@@ -1,6 +1,6 @@
 
 import { useMemo, useState } from "react";
-import { replace, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   useGetTasksQuery,
   useCreateTaskMutation,
@@ -13,7 +13,6 @@ import NewTaskModal from "../components/NewTaskModal";
 import Column from "../components/Column";
 import { useMeQuery } from "../services/authApi";
 import OrganizationBadge from "../components/organization/OrganizationBadge";
-import SelectOrganization from "../components/organization/SelectOrganization";
 import Button from "../components/button/Button";
 
 const ORG_KEY = "active_org_id";
@@ -24,9 +23,8 @@ const ProjectBoard = () => {
   const navigate  = useNavigate()
   const { projectId = "" } = useParams<{ projectId: string }>();
   const { data: me, isLoading: loadingMe } = useMeQuery();
-  const [orgId, setOrgId] = useState<string>(() => getStoredOrganizationId());
+  const [orgId, _setOrgId] = useState<string>(() => getStoredOrganizationId());
   const hasNoOrganizations = !!me && (me.members?.length ?? 0) === 0;
-  const needSelectOrg = !orgId && !!me && (me.members?.length ?? 0) > 0;
   const {
     data: tasks = [],
     isLoading,
@@ -65,15 +63,15 @@ const ProjectBoard = () => {
      navigate("/no-organization");
   }
 
-   const onChoose: React.FormEventHandler<HTMLFormElement> = (e) => {
-     e.preventDefault();
-     const fd = new FormData(e.currentTarget);
-     const chosen = String(fd.get("orgId") || "");
-     if (chosen) {
-       localStorage.setItem(ORG_KEY, chosen);
-       setOrgId(chosen);
-     }
-   };
+  //  const onChoose: React.FormEventHandler<HTMLFormElement> = (e) => {
+  //    e.preventDefault();
+  //    const fd = new FormData(e.currentTarget);
+  //    const chosen = String(fd.get("orgId") || "");
+  //    if (chosen) {
+  //      localStorage.setItem(ORG_KEY, chosen);
+  //      setOrgId(chosen);
+  //    }
+  //  };
 
   if (isLoading) {
     return (
@@ -106,7 +104,7 @@ const ProjectBoard = () => {
     labels?: string[];
   }) => {
     try {
-      const res =  await createTask({
+      await createTask({
         projectId,
         orgId: orgId,
         body: { ...values, order: nextOrder(columns[values.status]) }}).unwrap();
