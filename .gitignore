@@ -4,8 +4,7 @@
 
 node_modules
 
-server/src/config/env.ts
-server/src/config/env
+
 server/.env
 frontend/node_modules
 client\.env.dev
