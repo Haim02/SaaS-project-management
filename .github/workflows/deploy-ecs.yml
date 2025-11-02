@@ -1,3 +1,99 @@
+# name: Deploy to ECS
+
+# on:
+#   push:
+#     branches: [ main ]
+#   workflow_dispatch: {}
+
+# # קובץ ה-ENV שמכיל את כל המשתנים (AWS_REGION, ECR_REPOSITORY, וכו')
+# env:
+# env:
+#   MONGO_URI: ${{ secrets.MONGO_URI }}
+#   JWT_SECRET: ${{ secrets.JWT_SECRET }}
+#   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+#   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+#   GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
+
+#   ENV_FILE: .env.deploy
+#   TASK_DEF_PATH: grep -v '^\s*#' "$ENV_FILE" | ...
+
+#   run: |
+#     export $(grep -v '^#' .env.deploy | xargs)
+
+
+# permissions:
+#   id-token: write   # OIDC ל-AWS
+#   contents: read
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       # טוען את .env.deploy לתוך GITHUB_ENV כדי שהשלבים הבאים יראו את כל המשתנים
+#       - name: Load env file
+#         run: |
+#           set -eu
+#           if [ ! -f "$ENV_FILE" ]; then
+#             echo "::error file=$ENV_FILE::env file not found"
+#             exit 1
+#           fi
+#           grep -v '^\s*#' "$ENV_FILE" | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' >> "$GITHUB_ENV"
+#           echo "Loaded env:"
+#           awk -F= '{print $1}' "$ENV_FILE" | grep -v '^\s*#' | sed 's/^/ - /'
+
+#       # מגדיר הרשאות ל-AWS באמצעות OIDC (ללא מפתחות)
+#       - name: Configure AWS credentials (OIDC)
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: arn:aws:iam::957597318409:role/gha-ecs-deploy-role
+#           aws-region: ${{ env.AWS_REGION }}
+
+#       # לוגין ל-ECR
+#       - name: Login to Amazon ECR
+#         id: ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+
+#       # Build & Push — מתייגים גם ב-SHA וגם ב-latest לנוחות
+#       - name: Build & Push Docker image
+#         env:
+#           IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+#           IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+#         run: |
+#           docker build -t "$IMAGE_SHA" .
+#           docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
+#           docker push "$IMAGE_SHA"
+#           docker push "$IMAGE_LATEST"
+#           echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
+
+#       # מעדכן את ה-Task Definition עם התמונה החדשה
+#       - name: Render task definition
+#         id: taskdef
+#         uses: aws-actions/amazon-ecs-render-task-definition@v1
+#         with:
+#           task-definition: ${{ env.TASK_DEF_PATH }}
+#           container-name: ${{ env.ECS_CONTAINER_NAME }}
+#           image: ${{ env.IMAGE_URI }}
+
+#       # פריסה לשירות
+#       - name: Deploy to ECS Service
+#         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+#         with:
+#           task-definition: ${{ steps.taskdef.outputs.task-definition }}
+#           service: ${{ env.ECS_SERVICE }}
+#           cluster: ${{ env.ECS_CLUSTER }}
+#           wait-for-service-stability: true
+
+#       # הדפסה ידידותית בסוף
+#       - name: Print deployed image
+#         run: |
+#           echo "Deployed image:"
+#           echo "${IMAGE_URI}"
+
+
 name: Deploy to ECS
 
 on:
@@ -5,25 +101,24 @@ on:
     branches: [ main ]
   workflow_dispatch: {}
 
-# קובץ ה-ENV שמכיל את כל המשתנים (AWS_REGION, ECR_REPOSITORY, וכו')
+permissions:
+  id-token: write # OIDC ל-AWS
+  contents: read
+
+# בלוק ENV יחיד ומסודר: משלב Secrets ומשתנים סטטיים
 env:
-env:
+  # 1.Secrets קריטיים ש-AWS או הקונטיינר יצטרכו (עוברים כ-input)
   MONGO_URI: ${{ secrets.MONGO_URI }}
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
   GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
 
+  # 2. משתנים סטטיים שמשמשים את ה-Workflow
   ENV_FILE: .env.deploy
-  TASK_DEF_PATH: grep -v '^\s*#' "$ENV_FILE" | ...
-
-  run: |
-    export $(grep -v '^#' .env.deploy | xargs)
-
-
-permissions:
-  id-token: write   # OIDC ל-AWS
-  contents: read
+  # ***הערה: TASK_DEF_PATH לא יכול להיות פקודת grep. הוא צריך להיות נתיב לקובץ JSON/YAML.
+  # נניח שקובץ ה-Task Definition שלך נמצא ב:
+  TASK_DEF_PATH: task-definition.json
 
 jobs:
   deploy:
@@ -33,33 +128,48 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # טוען את .env.deploy לתוך GITHUB_ENV כדי שהשלבים הבאים יראו את כל המשתנים
-      - name: Load env file
+      # 1. יצירת קובץ ה-ENV בפועל לשימוש ב-Task Definition
+      - name: Create .env.deploy and Load Static Env
         run: |
-          set -eu
-          if [ ! -f "$ENV_FILE" ]; then
-            echo "::error file=$ENV_FILE::env file not found"
-            exit 1
-          fi
-          grep -v '^\s*#' "$ENV_FILE" | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' >> "$GITHUB_ENV"
-          echo "Loaded env:"
-          awk -F= '{print $1}' "$ENV_FILE" | grep -v '^\s*#' | sed 's/^/ - /'
+          # יצירת הקובץ .env.deploy מתוך Secrets המועברים
+          echo "MONGO_URI=${{ env.MONGO_URI }}" >> $ENV_FILE
+          echo "JWT_SECRET=${{ env.JWT_SECRET }}" >> $ENV_FILE
+          echo "GOOGLE_CLIENT_ID=${{ env.GOOGLE_CLIENT_ID }}" >> $ENV_FILE
+          echo "GOOGLE_CLIENT_SECRET=${{ env.GOOGLE_CLIENT_SECRET }}" >> $ENV_FILE
+          echo "GOOGLE_REDIRECT_URI=${{ env.GOOGLE_REDIRECT_URI }}" >> $ENV_FILE
 
-      # מגדיר הרשאות ל-AWS באמצעות OIDC (ללא מפתחות)
+          # טעינת משתנים כלליים (ECS_CLUSTER, AWS_REGION וכו') מה-Secrets.
+          # הנחה: משתנים אלו מוגדרים כ-Repository Secrets או Environment Secrets ב-GitHub
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}" >> $GITHUB_ENV
+          echo "ECS_CLUSTER=${{ secrets.ECS_CLUSTER }}" >> $GITHUB_ENV
+          echo "ECS_SERVICE=${{ secrets.ECS_SERVICE }}" >> $GITHUB_ENV
+          echo "ECS_CONTAINER_NAME=${{ secrets.ECS_CONTAINER_NAME }}" >> $GITHUB_ENV
+
+          # בדיקה והדפסה (מועברות ל-GITHUB_ENV)
+          echo "::set-output name=aws_region::${{ secrets.AWS_REGION }}"
+          echo "::set-output name=ecs_cluster::${{ secrets.ECS_CLUSTER }}"
+
+# -----------------------------------------------------------------------------------
+# שינויים נוספים:
+# -----------------------------------------------------------------------------------
+
+      # 2. מגדיר הרשאות ל-AWS באמצעות OIDC (ללא מפתחות)
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::957597318409:role/gha-ecs-deploy-role
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }} # משתמש בערך שנטען ל-GITHUB_ENV
 
-      # לוגין ל-ECR
+      # 3. לוגין ל-ECR
       - name: Login to Amazon ECR
         id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Build & Push — מתייגים גם ב-SHA וגם ב-latest לנוחות
+      # 4. Build & Push
       - name: Build & Push Docker image
         env:
+          # משתמש במשתני הסביבה שנטענו
           IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
         run: |
@@ -67,18 +177,23 @@ jobs:
           docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
           docker push "$IMAGE_SHA"
           docker push "$IMAGE_LATEST"
-          echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
+          echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV" # מעביר את ה-URI לשימוש בשלבים הבאים
 
-      # מעדכן את ה-Task Definition עם התמונה החדשה
+      # 5. מעדכן את ה-Task Definition עם התמונה החדשה
+      # הערה: יש צורך להשתמש ב-Container Name
       - name: Render task definition
         id: taskdef
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
+          # משתמש בנתיב לקובץ Task Definition
           task-definition: ${{ env.TASK_DEF_PATH }}
           container-name: ${{ env.ECS_CONTAINER_NAME }}
           image: ${{ env.IMAGE_URI }}
+          # העברת משתני הסביבה כקובץ ENV (הכי טוב ל-Secrets)
+          environment-variables: |
+            ENV_FILE=${{ env.ENV_FILE }}
 
-      # פריסה לשירות
+      # 6. פריסה לשירות
       - name: Deploy to ECS Service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
@@ -87,8 +202,8 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-      # הדפסה ידידותית בסוף
+      # 7. הדפסה ידידותית בסוף
       - name: Print deployed image
         run: |
           echo "Deployed image:"
-          echo "${IMAGE_URI}"
+          echo "${{ env.IMAGE_URI }}"
