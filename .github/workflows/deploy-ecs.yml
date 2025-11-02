@@ -7,6 +7,13 @@ on:
 
 # קובץ ה-ENV שמכיל את כל המשתנים (AWS_REGION, ECR_REPOSITORY, וכו')
 env:
+env:
+  MONGO_URI: ${{ secrets.MONGO_URI }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+  GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+  GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
+
   ENV_FILE: .env.deploy
   TASK_DEF_PATH: grep -v '^\s*#' "$ENV_FILE" | ...
 
