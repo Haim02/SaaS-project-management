@@ -25,6 +25,8 @@ beforeAll(async () => {
             email: "haim@gmail.com",
             password: "Haim12345678"
         })
+    console.log('loginUser', loginUser)
+    console.log('loginUser heder', loginUser.headers)
     token = loginUser.headers['set-cookie'][0]
 });
 
