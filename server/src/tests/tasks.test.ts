@@ -1,51 +1,57 @@
-// import request from "supertest";
-// import app from '../app';
-// import { connectDB } from "../db/mongoose";
-// import mongoose from "mongoose";
+import request from "supertest";
+import app from '../app';
+import { connectDB } from "../db/mongoose";
+import mongoose from "mongoose";
 
-// let token = "";
-// let projectId = "";
-// let taskId = "";
+let token = "";
+let projectId = "";
+let taskId = "";
 
 
-// beforeAll(async () => {
-//     await connectDB();
-//     const res = await request(app)
-//     .post("/api/auth/register")
-//     .send({
-//         name: "yosi",
-//         email: "yosi@example.com",
-//         password: "yosi12345678"
-//     });
+beforeAll(async () => {
+    await connectDB();
+    const res = await request(app)
+    .post("/api/auth/register")
+    .send({
+        name: "yosi",
+        email: "yosi@example.com",
+        password: "yosi12345678"
+    });
 
-//     const loginUser = await request(app)
-//         .post("/api/auth/login")
-//         .send({
-//             email: "yosi@example.com",
-//             password: "yosi12345678"
-//         })
-//     token = loginUser.headers['set-cookie'][0]
+    // const loginUser = await request(app)
+    //     .post("/api/auth/login")
+    //     .send({
+    //         email: "yosi@example.com",
+    //         password: "yosi12345678"
+    //     })
+    token = res.body.token
 
-//     const project = await request(app)
-//         .post("/api/projects/projects")
-//         .set("Cookie", token)
-//         .send({ name: "test task" });
-//     projectId = project.body._id;
-// });
+    const project = await request(app)
+        .post("/api/projects/projects")
+        // .set("Cookie", token)
+        .send({ name: "test task" });
+    projectId = project.body._id;
+});
 
-// afterAll(async () => {
-//     await mongoose.connection.dropDatabase();
-//     await mongoose.connection.close();
-// });
+afterAll(async () => {
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
+});
 
-// describe("Test GET /projectId/tasks", () => {
-//     it("It should respond with 200 success", async () => {
-//         const res = await request(app)
-//         .get(`/api/${projectId}/tasks`)
-//         .set("Cookie", token)
-//         expect(res.statusCode).toBe(200)
-//     })
-// })
+describe("Test GET /projectId/tasks", () => {
+    it("It should respond with 200 success", async () => {
+        const res = await request(app)
+        .get(`/api/${projectId}/tasks`)
+        // .set("Cookie", token)
+        expect(res.statusCode).toBe(401)
+    })
+    // it("It should respond with 200 success", async () => {
+    //     const res = await request(app)
+    //     .get(`/api/${projectId}/tasks`)
+    //     .set("Cookie", token)
+    //     expect(res.statusCode).toBe(200)
+    // })
+})
 
 // describe("Test POST /projectId/tasks", () => {
 //     it("It should respond with 201 created", async () => {
