@@ -47,4 +47,4 @@ jobs:
 
       # ===== Docker Build (validates Dockerfile) =====
       - name: Build Docker image (no push)
-        run: docker build -t saas-pm:ci -f server/Dockerfile
+        run: docker build -t saas-pm:ci -f server/Dockerfile /.server
