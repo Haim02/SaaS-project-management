@@ -120,6 +120,9 @@ env:
   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
   GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: saas-pm
+
 
   # 2. משתנים סטטיים שמשמשים את ה-Workflow
   ENV_FILE: .env.deploy
