@@ -4,12 +4,12 @@
   "cpu": "512",
   "memory": "1024",
   "requiresCompatibilities": ["FARGATE"],
-  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/ecsTaskExecutionRole",
-  "taskRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/saasAppTaskRole",
+  "executionRoleArn": "arn:aws:iam::957597318409:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::957597318409:role/saasAppTaskRole",
   "containerDefinitions": [
     {
       "name": "app",
-      "image": "123456789012.dkr.ecr.eu-central-1.amazonaws.com/saas-pm:latest",
+      "image": "957597318409.dkr.ecr.us-east-1.amazonaws.com/saas-pm:latest",
       "essential": true,
       "portMappings": [{ "containerPort": 3000, "protocol": "tcp" }],
       "environment": [
@@ -18,22 +18,22 @@
 
         {
           "name": "GOOGLE_REDIRECT_URI",
-          "value": "https://<your-domain>/api/auth/google/callback"
+          "value": "http://localhost:3000/api/auth/google/callback"
         },
         {
           "name": "FRONTEND_SUCCESS_REDIRECT",
-          "value": "https://<your-domain>/"
+          "value": "https://localhost:3000/"
         },
         {
           "name": "FRONTEND_FAILURE_REDIRECT",
-          "value": "https://<your-domain>/login?error=google"
+          "value": "https://localhost:3000/login?error=google"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/saas",
-          "awslogs-region": "eu-central-1",
+          "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "app"
         }
       }
