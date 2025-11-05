@@ -20,7 +20,7 @@ services:
     build:
       context: .
       dockerfile: server/Dockerfile
-    image: saas-app:prod
+    image: 957597318409.dkr.ecr.us-east-1.amazonaws.com/saas-pm:latest
     container_name: saas_app
 
     depends_on:
