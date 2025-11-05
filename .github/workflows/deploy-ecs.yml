@@ -293,7 +293,7 @@ jobs:
           IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/saas-pm:${{ github.sha }}
           IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/saas-pm:latest
         run: |
-          docker build -f  server/Dockerfile  -t "$IMAGE_SHA"
+          docker build -f  server/Dockerfile  -t "$IMAGE_SHA" .
           docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
           docker push "$IMAGE_SHA"
           docker push "$IMAGE_LATEST"
