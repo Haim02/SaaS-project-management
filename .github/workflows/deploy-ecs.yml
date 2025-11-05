@@ -261,7 +261,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::957597318409:role/gha-ecs-deploy-role
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
 
       - name: Login to Amazon ECR
         id: ecr
