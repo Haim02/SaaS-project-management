@@ -267,14 +267,31 @@ jobs:
         id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Echo image targets
+        run: |
+          echo "REGISTRY=${{ steps.ecr.outputs.registry }}"
+          echo "REPO=${{ env.ECR_REPOSITORY }}"
+          echo "SHA=${{ github.sha }}"
+
       # Build & Push image לשני תגיות: SHA ול- latest
+      # - name: Build & Push Docker image
+      #   env:
+      #     IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+      #     IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+      #   run: |
+      #     echo "Building: $IMAGE_SHA"
+      #     docker build -t "$IMAGE_SHA" .
+      #     docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
+      #     docker push "$IMAGE_SHA"
+      #     docker push "$IMAGE_LATEST"
+      #     echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
+
       - name: Build & Push Docker image
         env:
           IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
         run: |
-          echo "Building: $IMAGE_SHA"
-          docker build -t "$IMAGE_SHA" .
+          docker build -t "$IMAGE_SHA" ./server
           docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
           docker push "$IMAGE_SHA"
           docker push "$IMAGE_LATEST"
