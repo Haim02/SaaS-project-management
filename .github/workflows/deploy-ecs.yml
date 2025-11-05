@@ -304,8 +304,8 @@ jobs:
         id: taskdef
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ env.TASK_DEF_PATH }}
-          container-name: ${{ env.ECS_CONTAINER_NAME }}
+          task-definition:
+          container-name: infra/task-definition.json
           image: ${{ env.IMAGE_URI }}
 
       # פריסה לשירות
