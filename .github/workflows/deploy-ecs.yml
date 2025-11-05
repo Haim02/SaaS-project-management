@@ -315,5 +315,3 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-      - name: Print deployed image
-        run: echo "Deployed image: $IMAGE_URI"
