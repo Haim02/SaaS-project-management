@@ -329,52 +329,46 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  id-token: write # OIDC ל-AWS
+  id-token: write
   contents: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    # משתנים גלובליים ל-Job, נמשכים כולם מ-GitHub Secrets
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
       ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
       ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
       ECS_CONTAINER_NAME: ${{ secrets.ECS_CONTAINER_NAME }}
-      TASK_DEF_PATH: task-definition.json # נתיב לקובץ ה-Task Definition
+      TASK_DEF_PATH: task-definition.json
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 1. מגדיר הרשאות AWS באמצעות OIDC
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::957597318409:role/gha-ecs-deploy-role
           aws-region: ${{ env.AWS_REGION }}
 
-      # 2. Login ל-ECR
       - name: Login to Amazon ECR
         id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 3. Build & Push Docker image
       - name: Build & Push Docker image
         run: |
           IMAGE_SHA=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           IMAGE_LATEST=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
-          # בונה תמונה באמצעות Dockerfile בנתיב server/Dockerfile
           docker build -t "$IMAGE_SHA" -f server/Dockerfile .
           docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
           docker push "$IMAGE_SHA"
           docker push "$IMAGE_LATEST"
           echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
 
-      # 4. מעדכן את ה-Task Definition עם התמונה החדשה
       - name: Render task definition
         id: taskdef
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -383,7 +377,6 @@ jobs:
           container-name: ${{ env.ECS_CONTAINER_NAME }}
           image: ${{ env.IMAGE_URI }}
 
-      # 5. פריסה לשירות
       - name: Deploy to ECS Service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
@@ -392,6 +385,5 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-      # 6. הדפסה ידידותית בסוף
       - name: Print deployed image
         run: echo "Deployed image: ${{ env.IMAGE_URI }}"
