@@ -16,6 +16,9 @@
         { "name": "NODE_ENV", "value": "production" },
         { "name": "PORT", "value": "3000" },
 
+        { "name": "MONGO_URI ", "value": "mongodb+srv://haim:951753@cluster0.p7f8azh.mongodb.net/" },
+        { "name": "JWT_SECRET", "value": "super-secret-change-me" },
+
         {
           "name": "GOOGLE_REDIRECT_URI",
           "value": "http://localhost:3000/api/auth/google/callback"
