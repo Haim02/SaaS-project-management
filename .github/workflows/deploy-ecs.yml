@@ -337,11 +337,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-      ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
-      ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
-      ECS_CONTAINER_NAME: ${{ secrets.ECS_CONTAINER_NAME }}
+      AWS_REGION: us-east-1
+      ECR_REPOSITORY: saas-pm
+      ECS_CLUSTER: saas-cluster
+      ECS_SERVICE: saas-task-service
+      ECS_CONTAINER_NAME: app
       TASK_DEF_PATH: task-definition.json
 
     steps:
