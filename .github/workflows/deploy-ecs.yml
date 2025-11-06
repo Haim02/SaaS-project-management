@@ -373,7 +373,7 @@ jobs:
         id: taskdef
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ env.TASK_DEF_PATH }}
+          task-definition: infra/task-definition.json
           container-name: ${{ env.ECS_CONTAINER_NAME }}
           image: ${{ env.IMAGE_URI }}
 
