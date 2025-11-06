@@ -229,6 +229,98 @@
 #           echo "${{ env.IMAGE_URI }}"
 
 
+# name: Deploy to ECS
+
+# on:
+#   push:
+#     branches: [ main ]
+#   workflow_dispatch: {}
+
+# permissions:
+#   id-token: write
+#   contents: read
+
+# # הגדרות גלובליות – עדיף למשוך מ-Secrets כדי לא לחשוף כלום
+# env:
+#   AWS_REGION: ${{ secrets.AWS_REGION }}            # לדוגמה: us-east-1
+#   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}    # לדוגמה: saas-pm
+#   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}          # לדוגמה: saas-cluster
+#   ECS_SERVICE: ${{ secrets.ECS_SERVICE }}          # לדוגמה: saas-task-service
+#   ECS_CONTAINER_NAME: ${{ secrets.ECS_CONTAINER_NAME }} # לדוגמה: app
+#   TASK_DEF_PATH: task-definition.json              # קובץ קיים בריפו
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       # התחברות ל-AWS דרך OIDC (ללא מפתחות)
+#       - name: Configure AWS credentials (OIDC)
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: arn:aws:iam::957597318409:role/gha-ecs-deploy-role
+#           aws-region: us-east-1
+
+#       - name: Login to Amazon ECR
+#         id: ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+
+#       - name: Echo image targets
+#         run: |
+#           echo "REGISTRY=${{ steps.ecr.outputs.registry }}"
+#           echo "REPO=${{ env.ECR_REPOSITORY }}"
+#           echo "SHA=${{ github.sha }}"
+
+#       # Build & Push image לשני תגיות: SHA ול- latest
+#       # - name: Build & Push Docker image
+#       #   env:
+#       #     IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+#       #     IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+#       #   run: |
+#       #     echo "Building: $IMAGE_SHA"
+#       #     docker build -t "$IMAGE_SHA" .
+#       #     docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
+#       #     docker push "$IMAGE_SHA"
+#       #     docker push "$IMAGE_LATEST"
+#       #     echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
+
+#       - name: Build & Push Docker image
+#         env:
+#           REGISTRY: ${{ steps.ecr.outputs.registry }}
+#           REPO: saas-pm
+#           IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/saas-pm:${{ github.sha }}
+#           IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/saas-pm:latest
+#         run: |
+#           docker build -f  server/Dockerfile  -t "$IMAGE_SHA" .
+#           docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
+#           docker push "$IMAGE_SHA"
+#           docker push "$IMAGE_LATEST"
+#           echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
+
+#       # מחליף את התמונה בקובץ ה-Task Definition
+#       - name: Render task definition
+#         id: taskdef
+#         uses: aws-actions/amazon-ecs-render-task-definition@v1
+#         with:
+#           task-definition: infra/task-definition.json
+#           container-name: ${{ env.ECS_CONTAINER_NAME }}
+#           image: ${{ env.IMAGE_URI }}
+
+#       # פריסה לשירות
+#       - name: Deploy to ECS Service
+#         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+#         with:
+#           task-definition: ${{ steps.taskdef.outputs.task-definition }}
+#           service: ${{ env.ECS_SERVICE }}
+#           cluster: ${{ env.ECS_CLUSTER }}
+#           wait-for-service-stability: true
+
+
+
+
+
 name: Deploy to ECS
 
 on:
@@ -237,78 +329,61 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  id-token: write
+  id-token: write # OIDC ל-AWS
   contents: read
-
-# הגדרות גלובליות – עדיף למשוך מ-Secrets כדי לא לחשוף כלום
-env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}            # לדוגמה: us-east-1
-  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}    # לדוגמה: saas-pm
-  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}          # לדוגמה: saas-cluster
-  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}          # לדוגמה: saas-task-service
-  ECS_CONTAINER_NAME: ${{ secrets.ECS_CONTAINER_NAME }} # לדוגמה: app
-  TASK_DEF_PATH: task-definition.json              # קובץ קיים בריפו
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    # משתנים גלובליים ל-Job, נמשכים כולם מ-GitHub Secrets
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+      ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+      ECS_CONTAINER_NAME: ${{ secrets.ECS_CONTAINER_NAME }}
+      TASK_DEF_PATH: task-definition.json # נתיב לקובץ ה-Task Definition
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # התחברות ל-AWS דרך OIDC (ללא מפתחות)
+      # 1. מגדיר הרשאות AWS באמצעות OIDC
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::957597318409:role/gha-ecs-deploy-role
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
+      # 2. Login ל-ECR
       - name: Login to Amazon ECR
         id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Echo image targets
-        run: |
-          echo "REGISTRY=${{ steps.ecr.outputs.registry }}"
-          echo "REPO=${{ env.ECR_REPOSITORY }}"
-          echo "SHA=${{ github.sha }}"
-
-      # Build & Push image לשני תגיות: SHA ול- latest
-      # - name: Build & Push Docker image
-      #   env:
-      #     IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-      #     IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
-      #   run: |
-      #     echo "Building: $IMAGE_SHA"
-      #     docker build -t "$IMAGE_SHA" .
-      #     docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
-      #     docker push "$IMAGE_SHA"
-      #     docker push "$IMAGE_LATEST"
-      #     echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
-
+      # 3. Build & Push Docker image
       - name: Build & Push Docker image
-        env:
-          REGISTRY: ${{ steps.ecr.outputs.registry }}
-          REPO: saas-pm
-          IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/saas-pm:${{ github.sha }}
-          IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/saas-pm:latest
         run: |
-          docker build -f  server/Dockerfile  -t "$IMAGE_SHA" .
+          IMAGE_SHA=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          IMAGE_LATEST=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+          # בונה תמונה באמצעות Dockerfile בנתיב server/Dockerfile
+          docker build -t "$IMAGE_SHA" -f server/Dockerfile .
           docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
           docker push "$IMAGE_SHA"
           docker push "$IMAGE_LATEST"
           echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
 
-      # מחליף את התמונה בקובץ ה-Task Definition
+      # 4. מעדכן את ה-Task Definition עם התמונה החדשה
       - name: Render task definition
         id: taskdef
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: infra/task-definition.json
+          task-definition: ${{ env.TASK_DEF_PATH }}
           container-name: ${{ env.ECS_CONTAINER_NAME }}
           image: ${{ env.IMAGE_URI }}
 
-      # פריסה לשירות
+      # 5. פריסה לשירות
       - name: Deploy to ECS Service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
@@ -317,3 +392,6 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
+      # 6. הדפסה ידידותית בסוף
+      - name: Print deployed image
+        run: echo "Deployed image: ${{ env.IMAGE_URI }}"

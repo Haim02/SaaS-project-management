@@ -1,3 +1,4 @@
+
 {
   "family": "saas-task",
   "networkMode": "awsvpc",
@@ -12,26 +13,44 @@
       "image": "957597318409.dkr.ecr.us-east-1.amazonaws.com/saas-pm:latest",
       "essential": true,
       "portMappings": [{ "containerPort": 3000, "protocol": "tcp" }],
+
       "environment": [
         { "name": "NODE_ENV", "value": "production" },
         { "name": "PORT", "value": "3000" },
 
-        { "name": "MONGO_URI ", "value": "mongodb+srv://haim:951753@cluster0.p7f8azh.mongodb.net/" },
-        { "name": "JWT_SECRET", "value": "super-secret-change-me" },
-
         {
           "name": "GOOGLE_REDIRECT_URI",
-          "value": "http://localhost:3000/api/auth/google/callback"
+          "value": "https://api.saas.haim.com/api/auth/google/callback"
         },
         {
           "name": "FRONTEND_SUCCESS_REDIRECT",
-          "value": "https://localhost:3000/"
+          "value": "https://saas.haim.com/"
         },
         {
           "name": "FRONTEND_FAILURE_REDIRECT",
-          "value": "https://localhost:3000/login?error=google"
+          "value": "https://saas.haim.com/login?error=google"
         }
       ],
+
+      "secrets": [
+        {
+          "name": "MONGO_URI",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:957597318409:secret:saas/secrets-KOIs3B"
+        },
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:957597318409:secret:saas/secrets-KOIs3B"
+        },
+        {
+          "name": "GOOGLE_CLIENT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:957597318409:secret:saas/secrets-KOIs3B"
+        },
+        {
+          "name": "GOOGLE_CLIENT_ID",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:957597318409:secret:saas/secrets-KOIs3B"
+        }
+      ],
+
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
