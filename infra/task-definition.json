@@ -4,8 +4,8 @@
   "cpu": "512",
   "memory": "1024",
   "requiresCompatibilities": ["FARGATE"],
-  "executionRoleArn": "arn:aws:iam::957597318409:role/ecsTaskExecutionRole",
   "taskRoleArn": "arn:aws:iam::957597318409:role/saasAppTaskRole",
+  "executionRoleArn": "arn:aws:iam::957597318409:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "app",
@@ -32,7 +32,7 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/saas",
+          "awslogs-group": "/ecs/saas-task",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "app"
         }
