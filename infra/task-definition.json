@@ -35,7 +35,7 @@
       "secrets": [
         {
           "name":"MONGO_URI",
-          "valueFrom":"arn:aws:secretsmanager:us-east-1:957597318409:secret:saas/secrets-KOIs3B"
+          "valueFrom":"arn:aws:secretsmanager:us-east-1:957597318409:secret:saas/secrets-KOIs3B:MONGO_URI::"
         },
         {
           "name": "JWT_SECRET",
