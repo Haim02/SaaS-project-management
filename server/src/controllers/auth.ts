@@ -48,7 +48,7 @@ export const login = async(req: Request, res: Response) => {
     const {email, password} = req.body as LoginUser
 
     try {
-        const user = await User.findOne({ email: "ben@gmail.com"})
+        const user = await User.findOne({ email: email})
         if(!user) {
             return res.status(StatusCodes.UNAUTHORIZED).json({
                 error: 'Invalid credentials'
@@ -112,7 +112,9 @@ export const isUserLogin = async (req: Request, res: Response) => {
 
 
 export const me = async (req: Request, res: Response) => {
+    console.log('me')
     const userId = req.userId
+    console.log('userId', userId)
     if (!userId) {
         return res.status(StatusCodes.UNAUTHORIZED).json({ error: "Unauthorized"})
     }

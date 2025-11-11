@@ -387,7 +387,8 @@
 
 
 
-name: Deploy to ECS (frontend + backend)
+
+name: Deploy to ECS
 
 on:
   push:
@@ -398,33 +399,17 @@ permissions:
   id-token: write
   contents: read
 
-env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY: saas-pm
-  ECS_CLUSTER: saas-cluster
-
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [backend, frontend]
-        include:
-          - service: backend
-            dockerfile: server/Dockerfile
-            image_tag: backend-latest
-            container_name: app                   # MUST match container name in backend task def
-            task_def_path: infra/task-definition-backend.json
-            ecs_service: saas-backend-svc
-            build_args: ""                        # no build-args for backend
-          - service: frontend
-            dockerfile: frontend/Dockerfile
-            image_tag: frontend-latest
-            container_name: nginx                 # MUST match container name in frontend task def
-            task_def_path: infra/task-definition-frontend.json
-            ecs_service: saas-frontend-svc
-            # בנה את הפרונט עם URL מלא ל-API (שים את זה ב-Repository secret בשם FRONTEND_API_URL)
-            build_args: "--build-arg VITE_API_URL=http://app:3000/api/"
+
+    env:
+      AWS_REGION: us-east-1
+      ECR_REPOSITORY: saas-pm
+      ECS_CLUSTER: saas-cluster
+      ECS_SERVICE: saas-task-service
+      ECS_CONTAINER_NAME: app
+      TASK_DEF_PATH: infra/task-definition.json
 
     steps:
       - name: Checkout
@@ -440,32 +425,29 @@ jobs:
         id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & Push ${{ matrix.service }} image
-        env:
-          REGISTRY: ${{ steps.ecr.outputs.registry }}
-          REPO: ${{ env.ECR_REPOSITORY }}
-          IMAGE_SHA: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ matrix.image_tag }}-${{ github.sha }}
-          IMAGE_LATEST: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ matrix.image_tag }}
+      - name: Build & Push Docker image (server builds & serves FE)
         run: |
-          echo "Building ${{ matrix.service }} with Dockerfile: ${{ matrix.dockerfile }}"
-          docker build -f ${{ matrix.dockerfile }} ${{ matrix.build_args }} -t "$IMAGE_SHA" .
+          IMAGE_SHA=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          IMAGE_LATEST=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+          docker build -f server/Dockerfile --build-arg VITE_API_URL=/api -t "$IMAGE_SHA" .
           docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
           docker push "$IMAGE_SHA"
           docker push "$IMAGE_LATEST"
           echo "IMAGE_URI=$IMAGE_SHA" >> "$GITHUB_ENV"
 
-      - name: Render ${{ matrix.service }} task definition
+      - name: Render task definition
         id: taskdef
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ matrix.task_def_path }}
-          container-name: ${{ matrix.container_name }}
+          task-definition: ${{ env.TASK_DEF_PATH }}
+          container-name: ${{ env.ECS_CONTAINER_NAME }}
           image: ${{ env.IMAGE_URI }}
 
-      - name: Deploy ${{ matrix.service }} to ECS Service
+      - name: Deploy to ECS Service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.taskdef.outputs.task-definition }}
-          service: ${{ matrix.ecs_service }}
+          service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true

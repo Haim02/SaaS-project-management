@@ -18,6 +18,7 @@
         "tests"
     ],
     "include": [
-        "src/**/*.ts"
-    ]
+        "**/*.ts",
+        "src/index.ts"
+    ],
 }
