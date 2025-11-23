@@ -27,11 +27,14 @@ function App() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [_logout] = useLogoutMutation();
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/");
-    }
-  }, [isAuthenticated, user]);
+ useEffect(() => {
+   if (isLoading) return;
+
+   if (!user) {
+     _logout();
+     navigate("/");
+   }
+ }, [isLoading, user]);
 
   if (isLoading) {
     return (

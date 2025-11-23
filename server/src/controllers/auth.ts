@@ -65,8 +65,8 @@ export const login = async(req: Request, res: Response) => {
         const token  = signToken({userId: user._id.toString()})
         res.cookie('access_token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            secure: false,
+            sameSite: "lax",
             maxAge: 24 * 60 * 60 * 1000,
         })
         .json({user: { name: user.name, email: user.email, _id: user._id}})
@@ -81,14 +81,16 @@ export const logout = async (req: Request, res: Response) => {
     res.clearCookie("access_token", {path: '/'})
     res.clearCookie(env.COOKIE_NAME, {
         httpOnly: true,
-        secure: true,
-        sameSite: "strict" as const,
+        secure: false,
+        sameSite: "lax",
         path: "/",
         maxAge: 0,
         expires: new Date(0)
     })
     res.cookie(env.COOKIE_NAME, "", {
         httpOnly: true,
+        secure: false,
+        sameSite: "lax",
         expires: new Date(0),
     });
     res.send({messages: "Coocie cleared"})
