@@ -44,7 +44,7 @@ const Login = () => {
             placeholder="סיסמה"
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button text="התחבר" isLoading={isLoading} type="submit" />
+          <Button text="התחבר" isLoading={isLoading} type="submit" className='w-full' />
           <button
             type="button"
             onClick={handleGoogle}

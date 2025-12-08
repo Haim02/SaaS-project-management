@@ -110,7 +110,7 @@ const Home = () => {
         </div>
         <div className="mt-8 w-40">
           <Link to="register">
-            <Button text="בואו נתחיל" type="button" />
+            <Button text="בואו נתחיל" type="button" className="px-6 py-2" />
           </Link>
         </div>
       </section>

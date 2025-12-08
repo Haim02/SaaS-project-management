@@ -27,7 +27,6 @@ const ProjectsDashboard = () => {
   const {
     data: projects = [],
     isLoading,
-    refetch,
   } = useGetProjectsQuery({ orgId: activeOrgId! });
   const [createProject] = useCreateProjectMutation();
 
@@ -39,16 +38,6 @@ const ProjectsDashboard = () => {
       (project.description ?? "").toLowerCase().includes(search.toLowerCase())
     );
   });
-
-  // const onChoose: React.FormEventHandler<HTMLFormElement> = (e) => {
-  //   e.preventDefault();
-  //   const fd = new FormData(e.currentTarget);
-  //   const chosen = String(fd.get("orgId") || "");
-  //   if (chosen) {
-  //     localStorage.setItem(ORG_KEY, chosen);
-  //     setOrgId(chosen);
-  //   }
-  // };
 
   const handleCreate = async (values: HandleCreateProps) => {
     try {
@@ -75,12 +64,6 @@ const ProjectsDashboard = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button
-            onClick={() => refetch()}
-            className="px-3 py-2 rounded border hover:bg-gray-50"
-          >
-            רענן
-          </button>
 
           <div className="flex gap-3">
             <RequirePermission perm="project.create">

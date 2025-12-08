@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -12,15 +11,17 @@ import Spinner from "../components/Spinner";
 import NewTaskModal from "../components/NewTaskModal";
 import Column from "../components/Column";
 import { useMeQuery } from "../services/authApi";
+import { useSummarizeProjectMutation } from "../services/aiApi";
 import OrganizationBadge from "../components/organization/OrganizationBadge";
 import Button from "../components/button/Button";
+import { CursorArrowRaysIcon } from "@heroicons/react/24/outline";
 
 const ORG_KEY = "active_org_id";
 
 const getStoredOrganizationId = () => localStorage.getItem(ORG_KEY) ?? "";
 
 const ProjectBoard = () => {
-  const navigate  = useNavigate()
+  const navigate = useNavigate();
   const { projectId = "" } = useParams<{ projectId: string }>();
   const { data: me, isLoading: loadingMe } = useMeQuery();
   const [orgId, _setOrgId] = useState<string>(() => getStoredOrganizationId());
@@ -30,21 +31,38 @@ const ProjectBoard = () => {
     isLoading,
     isError,
     refetch,
-  } = useGetTasksQuery(
-    { projectId, orgId },
-    { skip: !projectId || !orgId }
-  );
+  } = useGetTasksQuery({ projectId, orgId }, { skip: !projectId || !orgId });
 
   const [createTask] = useCreateTaskMutation();
   const [updateTask] = useUpdateTaskMutation();
   const [deleteTask] = useDeleteTaskMutation();
   const [openNew, setOpenNew] = useState(false);
 
+  const [
+    summarizeProject,
+    { data: summaryData, isLoading: isSummarizing, error: summaryError },
+  ] = useSummarizeProjectMutation();
+  const [summaryOpen, setSummaryOpen] = useState(false);
+
+  const handleSummarize = async () => {
+    if (!projectId) return;
+
+    try {
+      await summarizeProject({ projectId, orgId }).unwrap();
+      setSummaryOpen(true);
+    } catch (e) {
+      console.error(e);
+      alert("ניסיון הפקת סיכום נכשל");
+    }
+  };
+
   const columns = useMemo(() => {
     const sortByOrder = (a: Task, b: Task) => (a.order ?? 0) - (b.order ?? 0);
     return {
       todo: tasks.filter((t) => t.status === "todo").sort(sortByOrder),
-      inprogress: tasks.filter((t) => t.status === "inprogress").sort(sortByOrder),
+      inprogress: tasks
+        .filter((t) => t.status === "inprogress")
+        .sort(sortByOrder),
       done: tasks.filter((t) => t.status === "done").sort(sortByOrder),
     };
   }, [tasks]);
@@ -60,18 +78,8 @@ const ProjectBoard = () => {
   if (!me) return null;
 
   if (hasNoOrganizations) {
-     navigate("/no-organization");
+    navigate("/no-organization");
   }
-
-  //  const onChoose: React.FormEventHandler<HTMLFormElement> = (e) => {
-  //    e.preventDefault();
-  //    const fd = new FormData(e.currentTarget);
-  //    const chosen = String(fd.get("orgId") || "");
-  //    if (chosen) {
-  //      localStorage.setItem(ORG_KEY, chosen);
-  //      setOrgId(chosen);
-  //    }
-  //  };
 
   if (isLoading) {
     return (
@@ -83,7 +91,10 @@ const ProjectBoard = () => {
 
   if (isError) {
     return (
-      <div dir="rtl" className="max-w-xl mx-auto bg-white rounded-2xl p-6 shadow">
+      <div
+        dir="rtl"
+        className="max-w-xl mx-auto bg-white rounded-2xl p-6 shadow"
+      >
         <h2 className="text-xl font-semibold mb-2">שגיאה בטעינת משימות</h2>
         <p className="text-red-600">בדוק/י הרשאות ושהארגון הנבחר תקין.</p>
       </div>
@@ -107,7 +118,8 @@ const ProjectBoard = () => {
       await createTask({
         projectId,
         orgId: orgId,
-        body: { ...values, order: nextOrder(columns[values.status]) }}).unwrap();
+        body: { ...values, order: nextOrder(columns[values.status]) },
+      }).unwrap();
       setOpenNew(false);
       await refetch();
     } catch {
@@ -143,7 +155,22 @@ const ProjectBoard = () => {
         </div>
         <div className="flex items-center gap-3">
           <OrganizationBadge orgId={orgId} user={me} />
-          <Button text="משימה חדשה +" type="submit" className="px-4 py-2" isLoading={isLoading} onClick={() => setOpenNew(true)} />
+          <Button
+            text={isSummarizing ? "מפיק סיכום..." : "סיכום חכם "}
+            type="button"
+            className="px-4 py-2"
+            isLoading={isSummarizing}
+            onClick={handleSummarize}
+          >
+            <CursorArrowRaysIcon className="h-8 w-8 text-lime-400" />
+          </Button>
+          <Button
+            text="משימה חדשה +"
+            type="submit"
+            className="px-4 py-4"
+            isLoading={isLoading}
+            onClick={() => setOpenNew(true)}
+          />
         </div>
       </div>
 
@@ -176,9 +203,50 @@ const ProjectBoard = () => {
         onClose={() => setOpenNew(false)}
         onCreate={handleCreate}
       />
+
+      {summaryOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40">
+          <div
+            className="w-full max-w-xl bg-white rounded-2xl p-6 shadow-xl"
+            dir="rtl"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">סיכום חכם של הפרויקט</h2>
+              <button
+                onClick={() => setSummaryOpen(false)}
+                className="text-gray-500"
+              >
+                ✖
+              </button>
+            </div>
+
+            {isSummarizing ? (
+              <div className="py-6 flex justify-center">
+                <Spinner />
+              </div>
+            ) : summaryError ? (
+              <p className="text-red-600 text-sm">
+                אירעה שגיאה בעת הפקת הסיכום. נסה שוב מאוחר יותר.
+              </p>
+            ) : (
+              <p className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">
+                {summaryData?.summary ?? "לא התקבל סיכום."}
+              </p>
+            )}
+
+            <div className="mt-6 text-left">
+              <button
+                onClick={() => setSummaryOpen(false)}
+                className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+              >
+                סגירה
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
-
+};
 
 export default ProjectBoard;

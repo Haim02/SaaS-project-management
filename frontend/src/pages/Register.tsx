@@ -62,7 +62,7 @@ export default function Register() {
         <h1 className="text-2xl mb-5">הרשמה</h1>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col items-center space-y-4 w-full"
+          className="flex flex-col items-start space-y-4 w-full"
         >
           <Input type="text" placeholder="שם מלא" {...register("name")} />
           {errors.name && (
@@ -98,7 +98,15 @@ export default function Register() {
             </p>
           )}
 
-          <Button text="הירשם" isLoading={isLoading} type="submit" />
+          <small className="right-0">*סיסמה חייבת להכיל לפחות 8 תווים</small>
+          <small className="right-0">*סיסמה חייבת לכלול אות ומספר</small>
+
+          <Button
+            text="הירשם"
+            isLoading={isLoading}
+            type="submit"
+            className="w-full"
+          />
           <button
             type="button"
             onClick={handleGoogle}

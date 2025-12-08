@@ -10,6 +10,7 @@ import taskRouter from './routes/task';
 import { errorHandler, notFound } from './middleware/error';
 import { organizationRouter } from './routes/organization';
 import path from 'path';
+import aiRouter from './routes/ai';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.get("/api/health", (_req, res) => res.json({ok: true}))
 app.use("/api/auth", authRouter)
 app.use("/api/organizations", organizationRouter);
 app.use("/api/projects", projectRouter)
+app.use("/api/ai", aiRouter)
 app.use("/api", taskRouter)
 
 // const clientBuildPath = path.resolve(__dirname, "..", "public");
