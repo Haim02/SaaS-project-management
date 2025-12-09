@@ -44,6 +44,10 @@
         {
           "name": "GOOGLE_CLIENT_ID",
           "valueFrom": "arn:aws:secretsmanager:us-east-1:957597318409:secret:saas/secrets-KOIs3B:GOOGLE_CLIENT_ID::"
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:957597318409:secret:saas/secrets-KOIs3B:OPENAI_API_KEY::"
         }
       ],
       "logConfiguration": {

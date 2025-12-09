@@ -39,13 +39,14 @@ jobs:
       - name: Install BE
         working-directory: server
         run: npm ci
-        
+
       - name: Test BE
         working-directory: server
         if: ${{ hashFiles('server/package.json') != '' }}
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npm test --if-present
 
       # ===== Docker Build (validates Dockerfile) =====
