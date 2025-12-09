@@ -1,12 +1,14 @@
 import OpenAI from "openai";
 
-if (!process.env.OPENAI_API_KEY) {
+const apiKey = process.env.OPENAI_API_KEY
+
+const client = apiKey
+    ? new OpenAI({ apiKey })
+    : null;
+
+if (!apiKey) {
     throw new Error("Missing OPENAI_API_KEY in environment");
 }
-
-const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
 
 type TaskForSummary = {
     title: string;
@@ -17,6 +19,10 @@ type TaskForSummary = {
 
 
 export const summarizeProject = async (projectName: string, tasks: TaskForSummary[]): Promise<string> => {
+    if (!client) {
+        throw new Error("AI is not configured (missing OPENAI_API_KEY)");
+    }
+
     const tasksText =
         tasks.length === 0
             ? "אין משימות בפרויקט."
@@ -33,20 +39,20 @@ export const summarizeProject = async (projectName: string, tasks: TaskForSummar
                 .join("\n");
 
     const prompt = `
-אתה מסייע בניתוח מצב של פרויקט תוכנה במערכת לניהול פרויקטים.
+            אתה מסייע בניתוח מצב של פרויקט תוכנה במערכת לניהול פרויקטים.
 
-שם הפרויקט: ${projectName}
+            שם הפרויקט: ${projectName}
 
-להלן רשימת המשימות:
-${tasksText}
+            להלן רשימת המשימות:
+            ${tasksText}
 
-אנא כתוב סיכום קצר בעברית שכולל:
-1. תמונת מצב כללית של הפרויקט.
-2. אילו משימות נראות דחופות או תקועות.
-3. המלצה על מה כדאי לצוות להתמקד בשבוע הקרוב.
+            אנא כתוב סיכום קצר בעברית שכולל:
+            1. תמונת מצב כללית של הפרויקט.
+            2. אילו משימות נראות דחופות או תקועות.
+            3. המלצה על מה כדאי לצוות להתמקד בשבוע הקרוב.
 
-כתוב בעברית ברורה, 2–3 פסקאות קצרות.
-`;
+            כתוב בעברית ברורה, 2–3 פסקאות קצרות.
+            `;
 
     try {
         const response = await client.chat.completions.create({
@@ -63,12 +69,10 @@ ${tasksText}
     } catch (err: any) {
         console.error("OpenAI error:", err);
 
-        // טיפול מיוחד ב-Rate Limit
         if (err?.status === 429) {
             return "המערכת החכמה כרגע לא זמינה (חריגה ממכסה ה-AI). נסה שוב מאוחר יותר.";
         }
 
-        // לכל שגיאה אחרת
         return "אירעה שגיאה בעת הפקת סיכום הפרויקט.";
     }
 }
