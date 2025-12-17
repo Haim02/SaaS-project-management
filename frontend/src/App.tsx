@@ -25,16 +25,16 @@ function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate()
   const { isAuthenticated, isLoading, user } = useAuth();
-  const [_logout] = useLogoutMutation();
+  // const [_logout] = useLogoutMutation();
 
- useEffect(() => {
-   if (isLoading) return;
+//  useEffect(() => {
+//    if (isLoading) return;
 
-   if (!user) {
-     _logout();
-     navigate("/");
-   }
- }, [isLoading, user]);
+//    if (!user) {
+//      _logout();
+//      navigate("/");
+//    }
+//  }, [isLoading, user]);
 
   if (isLoading) {
     return (

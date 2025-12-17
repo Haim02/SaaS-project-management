@@ -13,15 +13,19 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login({ email, password }).unwrap();
-      navigate("/dashboard");
+      const res = await login({ email, password }).unwrap();
+        navigate("/dashboard");
     } catch (error) {
       console.error("err", error);
     }
   };
 
  const handleGoogle = () => {
-   window.location.href = "/api/auth/google/start";
+         window.open(
+           "https://projectsmanagement.org/api/auth/google/start",
+           "_self"
+         );
+  //  window.location.href = "/api/auth/google/start";
  };
 
   return (

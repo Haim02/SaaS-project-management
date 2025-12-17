@@ -1,3 +1,4 @@
+import { useLocation, Navigate } from "react-router-dom";
 import { useMeQuery } from "../../services/authApi";
 import Spinner from "./../Spinner";
 
@@ -6,10 +7,19 @@ type RequireRoleProps = {
   children: React.ReactNode;
 };
 
-const RequireRole = ({ children }: RequireRoleProps) => {
+const RequireRole = ({ children, roles }: RequireRoleProps) => {
+  const location = useLocation()
   const { data: me, isLoading } = useMeQuery();
+
   if (isLoading) return <Spinner />;
-  if (!me) return null;
+
+  if (!me){
+    return <Navigate to="/" replace state={{from: location.pathname}} />
+  }
+
+  if(!roles.includes(me.Membership.role)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
 
   return <>{children}</>;
 };

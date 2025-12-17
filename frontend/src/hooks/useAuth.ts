@@ -2,7 +2,7 @@ import { useMeQuery } from "../services/authApi";
 
 export const useAuth = () => {
     const { data, isLoading, isError } = useMeQuery(undefined, {
-        refetchOnMountOrArgChange: false,
+        refetchOnMountOrArgChange: true,
         refetchOnFocus: false,
         refetchOnReconnect: false,
         pollingInterval: 0,

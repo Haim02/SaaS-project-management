@@ -65,7 +65,7 @@ const NewProjectModal = ({ open, onClose, onCreate }: NewProjectModalProps) => {
             />
           </div>
 
-          <Button text="צור פרויקט" type="submit" isLoading={isSubmitting} />
+          <Button text="צור פרויקט" type="submit" className="py-4 px-2" isLoading={isSubmitting} />
         </form>
       </div>
     </div>

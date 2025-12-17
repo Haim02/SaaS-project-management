@@ -17,15 +17,15 @@
         { "name": "PORT", "value": "3000" },
         {
           "name": "GOOGLE_REDIRECT_URI",
-          "value": "https://api.saas.haim.com/api/auth/google/callback"
+          "value": "https://projectsmanagement.org/api/auth/google/callback"
         },
         {
           "name": "FRONTEND_SUCCESS_REDIRECT",
-          "value": "https://saas.haim.com/"
+          "value": "https://projectsmanagement.org/"
         },
         {
           "name": "FRONTEND_FAILURE_REDIRECT",
-          "value": "https://saas.haim.com/login?error=google"
+          "value": "https://projectsmanagement.org/login?error=google"
         }
       ],
       "secrets": [

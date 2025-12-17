@@ -53,7 +53,12 @@ export default function Register() {
   };
 
   const handleGoogle = () => {
-    window.location.href = "/api/auth/google/start";
+        window.open(
+          "https://projectsmanagement.org/api/auth/google/start",
+          "_self"
+        );
+
+    // window.location.href = "/api/auth/google/start";
   };
 
   return (

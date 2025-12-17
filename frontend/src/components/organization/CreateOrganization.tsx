@@ -64,7 +64,7 @@ export default function CreateOrganization() {
             )}
           </div>
 
-          <Button text="צור ארגון" type="submit" isLoading={isSubmitting} />
+          <Button text="צור ארגון" type="submit" className="py-4 px-2" isLoading={isSubmitting} />
 
           {error ? (
             <p className="text-sm text-red-600 mt-2">לא הצלחנו ליצור ארגון</p>

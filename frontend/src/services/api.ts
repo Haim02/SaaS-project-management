@@ -3,7 +3,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolk
 import { logout } from './store/authSlice';
 
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: "/api",
+  baseUrl: "http://localhost:3000/api",
   credentials: "include",
 });
 
@@ -37,9 +37,9 @@ const baseQueryWithLogout: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
       api.dispatch(logout());
       localStorage.removeItem("active_org_id");
 
-      if (typeof window !== "undefined" && window.location.pathname !== "/") {
-        window.location.href = "/";
-      }
+      // if (typeof window !== "undefined" && window.location.pathname !== "/") {
+      //   window.location.href = "/";
+      // }
     }
 
     return res;
