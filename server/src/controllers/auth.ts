@@ -45,7 +45,6 @@ export const register = async(req: Request, res: Response) => {
 
 
 export const login = async(req: Request, res: Response) => {
-    console.log("hhhhh")
     const {email, password} = req.body as LoginUser
 
     try {
@@ -66,7 +65,7 @@ export const login = async(req: Request, res: Response) => {
         const token  = signToken({userId: user._id.toString()})
         res.cookie('access_token', token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: "lax",
             maxAge: 24 * 60 * 60 * 1000,
         })
@@ -82,7 +81,7 @@ export const logout = async (req: Request, res: Response) => {
     res.clearCookie("access_token", {path: '/'})
     res.clearCookie(env.COOKIE_NAME, {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: "lax",
         path: "/",
         maxAge: 0,
@@ -90,8 +89,10 @@ export const logout = async (req: Request, res: Response) => {
     })
     res.cookie(env.COOKIE_NAME, "", {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: "lax",
+        path: "/",
+        maxAge: 0,
         expires: new Date(0),
     });
     res.send({messages: "Coocie cleared"})
@@ -115,9 +116,7 @@ export const isUserLogin = async (req: Request, res: Response) => {
 
 
 export const me = async (req: Request, res: Response) => {
-    console.log('me')
     const userId = req.userId
-    console.log('userId', userId)
     if (!userId) {
         return res.status(StatusCodes.UNAUTHORIZED).json({ error: "Unauthorized"})
     }

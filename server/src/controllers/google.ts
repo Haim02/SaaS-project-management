@@ -16,7 +16,7 @@ export const googleLogin = async (req: Request, res: Response) => {
     const url = client.generateAuthUrl({
         access_type: "offline",
         prompt: "consent",
-        scope: ["googleId", "email", "profile"],
+        scope: ["email", "profile", "openid"],
     })
     return res.redirect(url)
 }
@@ -47,7 +47,16 @@ export const googleCallback = async (req: Request, res: Response) => {
         const name = payload.name || email.split("@")[0];
         const googleId = payload.sub;
 
-        let user = await User.findOne({email})
+        if(!googleId) {
+            return res.status(StatusCodes.UNAUTHORIZED).json({ ok: false, message: "Missing Google Id" })
+        }
+
+        let user = await User.findOne({googleId})
+
+        if(!user && email) {
+            user = await User.findOne({ email })
+        }
+
         if(!user) {
             user = await User.create({
                 name,
@@ -64,13 +73,13 @@ export const googleCallback = async (req: Request, res: Response) => {
                 const token  = signToken({userId: user._id.toString()})
                 res.cookie('access_token', token, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "strict",
+                    secure: true,
+                    sameSite: "lax",
                     maxAge: 24 * 60 * 60 * 1000,
                 })
         res.json({ user: { name: user.name, email: user.email, _id: user._id } }).redirect("http://localhost:5173/")
     } catch (error) {
-
+        return res.status(StatusCodes.NOT_FOUND).json({ ok: false, message: "User Not Found" })
     }
 }
 
