@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Navbar from "./components/navigate/Navbar";
@@ -17,13 +17,11 @@ import RequireRole from "./components/Require/RequireRole";
 import OrganizationGate from "./components/organization/OrganizationGate";
 import JoinOrganization from "./components/organization/JoinOrganization";
 import CreateOrganization from "./components/organization/CreateOrganization";
-import { useLogoutMutation } from "./services/authApi";
 import type { User } from "./types/user";
 import OrgSettings from "./pages/OrganizationSetting";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate()
   const { isAuthenticated, isLoading, user } = useAuth();
   // const [_logout] = useLogoutMutation();
 

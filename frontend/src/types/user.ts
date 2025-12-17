@@ -3,7 +3,7 @@ export type User = {
     _id: string;
     name: string;
     email: string;
-    members: Members,
+    members: Members[],
     Membership: Membership
 };
 
