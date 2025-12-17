@@ -4,7 +4,7 @@ import Register from "./pages/Register";
 import Navbar from "./components/navigate/Navbar";
 import Sidebar from "./components/navigate/Sidebar";
 import Dashboard from "./pages/Dashboard";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import ProjectBoard from "./pages/ProjectBoard";
 import { useAuth } from "./hooks/useAuth";

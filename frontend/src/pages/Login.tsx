@@ -13,7 +13,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await login({ email, password }).unwrap();
+      await login({ email, password }).unwrap();
         navigate("/dashboard");
     } catch (error) {
       console.error("err", error);
