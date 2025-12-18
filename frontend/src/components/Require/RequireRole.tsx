@@ -8,18 +8,23 @@ type RequireRoleProps = {
 };
 
 const RequireRole = ({ children, roles }: RequireRoleProps) => {
-  const location = useLocation()
+  const location = useLocation();
   const { data: me, isLoading } = useMeQuery();
 
   if (isLoading) return <Spinner />;
 
-  if (!me){
-    return <Navigate to="/" replace state={{from: location.pathname}} />
+  if (!me) {
+    return <Navigate to="/" replace state={{ from: location.pathname }} />;
   }
 
-  if(!roles.includes(me.Membership.role)) {
+  const hasRole = me.members?.some((member) => roles.includes(member.role))
+
+  if (!hasRole) {
     return <Navigate to="/unauthorized" replace />;
   }
+  // if (!roles.includes(me.members[0].role)) {
+  //   return <Navigate to="/unauthorized" replace />;
+  // }
 
   return <>{children}</>;
 };
