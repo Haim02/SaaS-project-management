@@ -54,7 +54,7 @@ export default function Register() {
 
   const handleGoogle = () => {
         window.open(
-          "https://projectsmanagement.org/api/auth/google/start",
+          "/api/auth/google/start",
           "_self"
         );
 
@@ -122,7 +122,7 @@ export default function Register() {
               alt="Google"
               className="w-5 h-5"
             />
-            התחבר עם Google
+            הירשם עם Google
           </button>
         </form>
       </div>

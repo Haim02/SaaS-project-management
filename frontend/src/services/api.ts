@@ -3,7 +3,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolk
 import { logout } from './store/authSlice';
 
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:3000/api",
+  baseUrl: "/api",
   credentials: "include",
 });
 

@@ -22,7 +22,7 @@ const Login = () => {
 
  const handleGoogle = () => {
          window.open(
-           "https://projectsmanagement.org/api/auth/google/start",
+           "/api/auth/google/start",
            "_self"
          );
   //  window.location.href = "/api/auth/google/start";
