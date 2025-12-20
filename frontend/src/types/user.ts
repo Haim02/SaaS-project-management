@@ -4,7 +4,6 @@ export type User = {
     name: string;
     email: string;
     members: Members[],
-    Membership: Membership
 };
 
 export type Members = {

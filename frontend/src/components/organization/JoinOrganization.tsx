@@ -55,7 +55,12 @@ export default function JoinOrganization() {
           ) : null}
         </div>
 
-        <Button text="הצטרפות" type="submit" isLoading={isLoading} />
+        <Button
+          text="הצטרפות"
+          type="submit"
+          className="px-4 py-2"
+          isLoading={isLoading}
+        />
       </form>
     </div>
   );
