@@ -150,8 +150,187 @@
 // export default OrganizationGate;
 
 
+// import React, { useMemo, useState } from "react";
+// import { useNavigate, useLocation, Link } from "react-router-dom";
+// import { useHasOrg } from "../../hooks/useHasOrg";
+// import Spinner from "../Spinner";
+// import NoOrganization from "./NoOrganization";
+// import { useMeQuery } from "../../services/authApi";
+// import Button from "../button/Button";
+
+// const ORG_KEY = "active_org_id";
+// const getActiveOrg = () => localStorage.getItem(ORG_KEY) ?? "";
+// const setActiveOrg = (id: string) => localStorage.setItem(ORG_KEY, id);
+
+// type Props = {
+//   children: React.ReactNode;
+//   requireOrgId?: boolean;
+// };
+
+// const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
+//   const navigate = useNavigate();
+//   const location = useLocation();
+
+//   const { me, hasOrg, isLoading } = useHasOrg();
+//   const { refetch: refetchMe } = useMeQuery(undefined, { skip: true });
+
+//   const [activeOrgId, setActiveOrgIdState] = useState<string>(() =>
+//     getActiveOrg()
+//   );
+
+//   const needSelectOrg = useMemo(
+//     () => !!me && hasOrg && !activeOrgId,
+//     [me, hasOrg, activeOrgId]
+//   );
+
+//   if (isLoading) {
+//     return (
+//       <div className="min-h-[50vh] grid place-items-center">
+//         <Spinner />
+//       </div>
+//     );
+//   }
+
+//   if (!me) return <>{children}</>;
+
+//   if (!hasOrg) {
+//     return (
+//       <div dir="rtl" className="max-w-xl mx-auto">
+//         <NoOrganization creating={false} />
+//       </div>
+//     );
+//   }
+
+//   const onChoose: React.FormEventHandler<HTMLFormElement> = async (e) => {
+//     e.preventDefault();
+//     const fd = new FormData(e.currentTarget);
+//     const chosen = String(fd.get("orgId") || "");
+//     if (!chosen) return;
+
+//     setActiveOrg(chosen);
+//     setActiveOrgIdState(chosen);
+
+//     try {
+//       await refetchMe();
+//     } catch {}
+
+//     // ✅ ניתוב אחרי בחירה:
+//     // אם הגעת מדף שנחסם בגלל org — נחזור אליו, אחרת לדשבורד/פרויקטים
+//     const backTo = (location.state as any)?.from?.pathname || "/dashboard";
+//     navigate(backTo, { replace: true });
+//   };
+
+//   // if (needSelectOrg) {
+//   //   return (
+//   //     <div dir="rtl" className="min-h-[60vh] grid place-items-center px-4">
+//   //       <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow">
+//   //         <h1 className="text-xl font-bold mb-4">בחר/י ארגון לעבודה</h1>
+
+//   //         <form onSubmit={onChoose} className="space-y-4">
+//   //           <div>
+//   //             <label className="block mb-1 font-medium">ארגון</label>
+//   //             <select
+//   //               name="orgId"
+//   //               className="w-full border rounded-lg px-3 py-2"
+//   //             >
+//   //               {me.members!.map((org) => (
+//   //                 <option key={org._id} value={org._id}>
+//   //                   {org.name ?? org._id} — {org.role}
+//   //                 </option>
+//   //               ))}
+//   //             </select>
+//   //           </div>
+
+//   //           <Button
+//   //             text="המשך"
+//   //             type="submit"
+//   //             className="py-3"
+//   //             isLoading={false}
+//   //           />
+//   //         </form>
+//   //       </div>
+//   //     </div>
+//   //   );
+//   // }
+
+
+//   // ...
+
+//   if (needSelectOrg) {
+//     const onChoose: React.FormEventHandler<HTMLFormElement> = async (e) => {
+//       e.preventDefault();
+//       const fd = new FormData(e.currentTarget);
+//       const chosen = String(fd.get("orgId") || "");
+//       if (!chosen) return;
+
+//       setActiveOrg(chosen);
+//       setActiveOrgIdState(chosen);
+
+//       try {
+//         await refetchMe();
+//       } catch {}
+
+//       const backTo = (location.state as any)?.from?.pathname || "/dashboard";
+//       navigate(backTo, { replace: true });
+//     };
+
+//     return (
+//       <div dir="rtl" className="min-h-[60vh] grid place-items-center px-4">
+//         <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow space-y-4">
+//           <h1 className="text-xl font-bold">בחר/י ארגון לעבודה</h1>
+
+//           <form onSubmit={onChoose} className="space-y-4">
+//             <div>
+//               <label className="block mb-1 font-medium">ארגון</label>
+//               <select
+//                 name="orgId"
+//                 className="w-full border rounded-lg px-3 py-2"
+//               >
+//                 {me.members!.map((org) => (
+//                   <option key={org._id} value={org._id}>
+//                     {org.name ?? org._id} — {org.role}
+//                   </option>
+//                 ))}
+//               </select>
+//             </div>
+
+//             <Button
+//               text="המשך"
+//               type="submit"
+//               className="py-3"
+//               isLoading={false}
+//             />
+//           </form>
+
+//           <div className="border-t pt-4 grid grid-cols-2 gap-3">
+//             <Link
+//               to="/organization/join-organization"
+//               className="px-4 py-2 rounded-xl border text-center hover:bg-gray-50"
+//             >
+//               הצטרפות לארגון
+//             </Link>
+
+//             <Link
+//               to="/organization/create-new-organization"
+//               className="px-4 py-2 rounded-xl bg-blue-600 text-white text-center hover:bg-blue-700"
+//             >
+//               יצירת ארגון
+//             </Link>
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   }
+
+
+//   return <>{children}</>;
+// };
+
+// export default OrganizationGate;
+
+
 import React, { useMemo, useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useHasOrg } from "../../hooks/useHasOrg";
 import Spinner from "../Spinner";
 import NoOrganization from "./NoOrganization";
@@ -164,19 +343,15 @@ const setActiveOrg = (id: string) => localStorage.setItem(ORG_KEY, id);
 
 type Props = {
   children: React.ReactNode;
-  requireOrgId?: boolean;
 };
 
-const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
+const OrganizationGate = ({ children }: Props) => {
   const { me, hasOrg, isLoading } = useHasOrg();
-  const { refetch: refetchMe } = useMeQuery(undefined, { skip: true });
 
-  const [activeOrgId, setActiveOrgIdState] = useState<string>(() =>
-    getActiveOrg()
-  );
+  // ✅ state קטן שמכריח רינדור מחדש אחרי "המשך"
+  const [activeOrgId, setActiveOrgId] = useState(() => getActiveOrg());
+
+  const { refetch: refetchMe } = useMeQuery(undefined, { skip: true });
 
   const needSelectOrg = useMemo(
     () => !!me && hasOrg && !activeOrgId,
@@ -191,8 +366,10 @@ const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
     );
   }
 
+  // לא מחובר — תן לראוטים שלך לטפל בזה
   if (!me) return <>{children}</>;
 
+  // אין ארגונים בכלל
   if (!hasOrg) {
     return (
       <div dir="rtl" className="max-w-xl mx-auto">
@@ -201,61 +378,7 @@ const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
     );
   }
 
-  const onChoose: React.FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const chosen = String(fd.get("orgId") || "");
-    if (!chosen) return;
-
-    setActiveOrg(chosen);
-    setActiveOrgIdState(chosen);
-
-    try {
-      await refetchMe();
-    } catch {}
-
-    // ✅ ניתוב אחרי בחירה:
-    // אם הגעת מדף שנחסם בגלל org — נחזור אליו, אחרת לדשבורד/פרויקטים
-    const backTo = (location.state as any)?.from?.pathname || "/dashboard";
-    navigate(backTo, { replace: true });
-  };
-
-  // if (needSelectOrg) {
-  //   return (
-  //     <div dir="rtl" className="min-h-[60vh] grid place-items-center px-4">
-  //       <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow">
-  //         <h1 className="text-xl font-bold mb-4">בחר/י ארגון לעבודה</h1>
-
-  //         <form onSubmit={onChoose} className="space-y-4">
-  //           <div>
-  //             <label className="block mb-1 font-medium">ארגון</label>
-  //             <select
-  //               name="orgId"
-  //               className="w-full border rounded-lg px-3 py-2"
-  //             >
-  //               {me.members!.map((org) => (
-  //                 <option key={org._id} value={org._id}>
-  //                   {org.name ?? org._id} — {org.role}
-  //                 </option>
-  //               ))}
-  //             </select>
-  //           </div>
-
-  //           <Button
-  //             text="המשך"
-  //             type="submit"
-  //             className="py-3"
-  //             isLoading={false}
-  //           />
-  //         </form>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
-
-  // ...
-
+  // יש ארגונים אבל אין active_org_id — תבחר
   if (needSelectOrg) {
     const onChoose: React.FormEventHandler<HTMLFormElement> = async (e) => {
       e.preventDefault();
@@ -264,14 +387,12 @@ const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
       if (!chosen) return;
 
       setActiveOrg(chosen);
-      setActiveOrgIdState(chosen);
+      setActiveOrgId(chosen); // ✅ זה מה ש”מעיר” את האפליקציה
 
+      // אופציונלי: לרענן me כדי ש-OrgSelector וכו' יתעדכנו
       try {
         await refetchMe();
       } catch {}
-
-      const backTo = (location.state as any)?.from?.pathname || "/dashboard";
-      navigate(backTo, { replace: true });
     };
 
     return (
@@ -309,7 +430,6 @@ const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
             >
               הצטרפות לארגון
             </Link>
-
             <Link
               to="/organization/create-new-organization"
               className="px-4 py-2 rounded-xl bg-blue-600 text-white text-center hover:bg-blue-700"
@@ -322,9 +442,8 @@ const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
     );
   }
 
-
+  // יש active org — משחררים את הילדים
   return <>{children}</>;
 };
 
 export default OrganizationGate;
-
