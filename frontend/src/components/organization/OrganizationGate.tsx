@@ -1,8 +1,162 @@
+// import React, { useMemo, useState } from "react";
+// import { useHasOrg } from "../../hooks/useHasOrg";
+// import Spinner from "../Spinner";
+// import NoOrganization from "./NoOrganization";
+// import { useMeQuery } from "../../services/authApi";
+// import Button from "../button/Button";
+
+// const ORG_KEY = "active_org_id";
+// const getActiveOrg = () => localStorage.getItem(ORG_KEY) ?? "";
+// const setActiveOrg = (id: string) => localStorage.setItem(ORG_KEY, id);
+
+// type Props = {
+//   children: React.ReactNode;
+//   requireOrgId?: boolean;
+// };
+
+// const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
+//   const { me, hasOrg, isLoading } = useHasOrg();
+//   const [_joinOpen, setJoinOpen] = useState(false);
+
+//   const [creating, _setCreating] = useState(false);
+//   const { refetch: refetchMe } = useMeQuery(undefined, { skip: true });
+
+//   const activeOrgId = getActiveOrg();
+//   const needSelectOrg = useMemo(
+//     () => !!me && hasOrg && !activeOrgId,
+//     [me, hasOrg, activeOrgId]
+//   );
+
+//   if (isLoading) {
+//     return (
+//       <div className="min-h-[50vh] grid place-items-center">
+//         <Spinner />
+//       </div>
+//     );
+//   }
+
+//   if (!me) return <>{children}</>;
+
+//   if (!hasOrg) {
+//     return (
+//       <>
+//         <div dir="rtl" className="max-w-xl mx-auto">
+//           <NoOrganization creating={creating} />
+//         </div>
+
+//         <h1>הצטרף לארגון</h1>
+
+//         {creating ? (
+//           <div className="fixed inset-0 grid place-items-center bg-black/20">
+//             <Spinner />
+//           </div>
+//         ) : null}
+//       </>
+//     );
+//   }
+
+//   if (needSelectOrg) {
+//     const onChoose: React.FormEventHandler<HTMLFormElement> = async (e) => {
+//       e.preventDefault();
+//       const fd = new FormData(e.currentTarget);
+//       const chosen = String(fd.get("orgId") || "");
+//       if (chosen) {
+//         setActiveOrg(chosen);
+//         await refetchMe();
+//       }
+//     };
+
+//     if (!requireOrgId) {
+//       return (
+//         <>
+//           <div
+//             dir="rtl"
+//             className="max-w-xl mx-auto bg-white rounded-2xl p-6 shadow space-y-4 mb-6"
+//           >
+//             <h2 className="text-xl font-semibold">בחר/י ארגון לעבודה</h2>
+//             <form onSubmit={onChoose} className="space-y-3">
+//               <select
+//                 name="orgId"
+//                 className="w-full border rounded-lg px-3 py-2"
+//               >
+//                 {me.members!.map((member) => (
+//                   <option key={member._id} value={member._id}>
+//                     {member.name ?? member._id} — {member.role}
+//                   </option>
+//                 ))}
+//               </select>
+//               <Button
+//                 text="המשך"
+//                 type="submit"
+//                 className="py-4 px-2"
+//                 isLoading={isLoading}
+//               />
+//               {/* <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl">
+//                 המשך
+//               </button> */}
+//             </form>
+//           </div>
+//           {children}
+//         </>
+//       );
+//     }
+
+//     return (
+//       <div dir="rtl" className="min-h-[60vh] grid place-items-center px-4">
+//         <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow">
+//           <h1 className="text-xl font-bold mb-4">בחר/י ארגון לעבודה</h1>
+//           <form onSubmit={onChoose} className="space-y-4">
+//             <div>
+//               <label className="block mb-1 font-medium">ארגון</label>
+//               <select
+//                 name="orgId"
+//                 className="w-full border rounded-lg px-3 py-2"
+//               >
+//                 {me.members!.map((member) => (
+//                   <option key={member._id} value={member._id}>
+//                     {member.name ?? member._id} — {member.role}
+//                   </option>
+//                 ))}
+//               </select>
+//             </div>
+//             <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl">
+//               המשך
+//             </button>
+//             <div className="text-sm text-gray-500 text-center">
+//               אין ארגון מתאים?{" "}
+//               <button
+//                 type="button"
+//                 onClick={() => setJoinOpen(true)}
+//                 className="underline"
+//               >
+//                 הצטרפות/יצירה
+//               </button>
+//             </div>
+//           </form>
+
+//           {/* מודל הצטרפות (לא חובה – לפי המימוש שלך) */}
+//           {/* <JoinOrganization
+//             open={joinOpen}
+//             onClose={() => setJoinOpen(false)}
+//           /> */}
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return <>{children}</>;
+// };
+
+// export default OrganizationGate;
+
+
 import React, { useMemo, useState } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useHasOrg } from "../../hooks/useHasOrg";
 import Spinner from "../Spinner";
 import NoOrganization from "./NoOrganization";
 import { useMeQuery } from "../../services/authApi";
+import Button from "../button/Button";
 
 const ORG_KEY = "active_org_id";
 const getActiveOrg = () => localStorage.getItem(ORG_KEY) ?? "";
@@ -14,13 +168,16 @@ type Props = {
 };
 
 const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
-  const { me, hasOrg, isLoading } = useHasOrg();
-  const [_joinOpen, setJoinOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [creating, _setCreating] = useState(false);
+  const { me, hasOrg, isLoading } = useHasOrg();
   const { refetch: refetchMe } = useMeQuery(undefined, { skip: true });
 
-  const activeOrgId = getActiveOrg();
+  const [activeOrgId, setActiveOrgIdState] = useState<string>(() =>
+    getActiveOrg()
+  );
+
   const needSelectOrg = useMemo(
     () => !!me && hasOrg && !activeOrgId,
     [me, hasOrg, activeOrgId]
@@ -38,67 +195,90 @@ const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
 
   if (!hasOrg) {
     return (
-      <>
-        <div dir="rtl" className="max-w-xl mx-auto">
-          <NoOrganization creating={creating} />
-        </div>
-
-        <h1>הצטרף לארגון</h1>
-
-        {creating ? (
-          <div className="fixed inset-0 grid place-items-center bg-black/20">
-            <Spinner />
-          </div>
-        ) : null}
-      </>
+      <div dir="rtl" className="max-w-xl mx-auto">
+        <NoOrganization creating={false} />
+      </div>
     );
   }
+
+  const onChoose: React.FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const chosen = String(fd.get("orgId") || "");
+    if (!chosen) return;
+
+    setActiveOrg(chosen);
+    setActiveOrgIdState(chosen);
+
+    try {
+      await refetchMe();
+    } catch {}
+
+    // ✅ ניתוב אחרי בחירה:
+    // אם הגעת מדף שנחסם בגלל org — נחזור אליו, אחרת לדשבורד/פרויקטים
+    const backTo = (location.state as any)?.from?.pathname || "/dashboard";
+    navigate(backTo, { replace: true });
+  };
+
+  // if (needSelectOrg) {
+  //   return (
+  //     <div dir="rtl" className="min-h-[60vh] grid place-items-center px-4">
+  //       <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow">
+  //         <h1 className="text-xl font-bold mb-4">בחר/י ארגון לעבודה</h1>
+
+  //         <form onSubmit={onChoose} className="space-y-4">
+  //           <div>
+  //             <label className="block mb-1 font-medium">ארגון</label>
+  //             <select
+  //               name="orgId"
+  //               className="w-full border rounded-lg px-3 py-2"
+  //             >
+  //               {me.members!.map((org) => (
+  //                 <option key={org._id} value={org._id}>
+  //                   {org.name ?? org._id} — {org.role}
+  //                 </option>
+  //               ))}
+  //             </select>
+  //           </div>
+
+  //           <Button
+  //             text="המשך"
+  //             type="submit"
+  //             className="py-3"
+  //             isLoading={false}
+  //           />
+  //         </form>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
+
+  // ...
 
   if (needSelectOrg) {
     const onChoose: React.FormEventHandler<HTMLFormElement> = async (e) => {
       e.preventDefault();
       const fd = new FormData(e.currentTarget);
       const chosen = String(fd.get("orgId") || "");
-      if (chosen) {
-        setActiveOrg(chosen);
+      if (!chosen) return;
+
+      setActiveOrg(chosen);
+      setActiveOrgIdState(chosen);
+
+      try {
         await refetchMe();
-      }
+      } catch {}
+
+      const backTo = (location.state as any)?.from?.pathname || "/dashboard";
+      navigate(backTo, { replace: true });
     };
 
-    if (!requireOrgId) {
-      return (
-        <>
-          <div
-            dir="rtl"
-            className="max-w-xl mx-auto bg-white rounded-2xl p-6 shadow space-y-4 mb-6"
-          >
-            <h2 className="text-xl font-semibold">בחר/י ארגון לעבודה</h2>
-            <form onSubmit={onChoose} className="space-y-3">
-              <select
-                name="orgId"
-                className="w-full border rounded-lg px-3 py-2"
-              >
-                {me.members!.map((member) => (
-                  <option key={member._id} value={member._id}>
-                    {member.name ?? member._id} — {member.role}
-                  </option>
-                ))}
-              </select>
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl">
-                המשך
-              </button>
-            </form>
-          </div>
-          {children}
-        </>
-      );
-    }
-
-    // ברירת מחדל (העמוד *חייב* orgId): חוסמים עד לבחירה
     return (
       <div dir="rtl" className="min-h-[60vh] grid place-items-center px-4">
-        <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow">
-          <h1 className="text-xl font-bold mb-4">בחר/י ארגון לעבודה</h1>
+        <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow space-y-4">
+          <h1 className="text-xl font-bold">בחר/י ארגון לעבודה</h1>
+
           <form onSubmit={onChoose} className="space-y-4">
             <div>
               <label className="block mb-1 font-medium">ארגון</label>
@@ -106,40 +286,45 @@ const OrganizationGate = ({ children, requireOrgId = true }: Props) => {
                 name="orgId"
                 className="w-full border rounded-lg px-3 py-2"
               >
-                {me.members!.map((member) => (
-                  <option key={member._id} value={member._id}>
-                    {member.name ?? member._id} — {member.role}
+                {me.members!.map((org) => (
+                  <option key={org._id} value={org._id}>
+                    {org.name ?? org._id} — {org.role}
                   </option>
                 ))}
               </select>
             </div>
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl">
-              המשך
-            </button>
-            <div className="text-sm text-gray-500 text-center">
-              אין ארגון מתאים?{" "}
-              <button
-                type="button"
-                onClick={() => setJoinOpen(true)}
-                className="underline"
-              >
-                הצטרפות/יצירה
-              </button>
-            </div>
+
+            <Button
+              text="המשך"
+              type="submit"
+              className="py-3"
+              isLoading={false}
+            />
           </form>
 
-          {/* מודל הצטרפות (לא חובה – לפי המימוש שלך) */}
-          {/* <JoinOrganization
-            open={joinOpen}
-            onClose={() => setJoinOpen(false)}
-          /> */}
+          <div className="border-t pt-4 grid grid-cols-2 gap-3">
+            <Link
+              to="/organization/join-organization"
+              className="px-4 py-2 rounded-xl border text-center hover:bg-gray-50"
+            >
+              הצטרפות לארגון
+            </Link>
+
+            <Link
+              to="/organization/create-new-organization"
+              className="px-4 py-2 rounded-xl bg-blue-600 text-white text-center hover:bg-blue-700"
+            >
+              יצירת ארגון
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
-  // יש orgId פעיל – משחררים את הילדים
+
   return <>{children}</>;
 };
 
 export default OrganizationGate;
+

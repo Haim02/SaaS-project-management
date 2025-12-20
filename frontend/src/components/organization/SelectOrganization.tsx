@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { User } from "../../types/user";
+import Button from "../button/Button";
 
 type SelectOrganizationProps = {
   user: User;
@@ -27,9 +28,14 @@ const SelectOrganization = ({ onChoose, user }: SelectOrganizationProps) => {
             ))}
           </select>
 
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl">
+               <Button
+                  text="המשך"
+                  type="submit"
+                  className="py-4 px-2"
+                        />
+          {/* <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl">
             המשך
-          </button>
+          </button> */}
         </form>
       ) : (
         <p className="text-gray-600">כרגע אינך משויך/ת לארגון.</p>
